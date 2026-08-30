@@ -31,8 +31,6 @@
 
 <fieldset id="settings-section-appearance" class="group group-wide group-background" disabled={saving}>
   <legend>配色方案</legend>
-  <p class="group-desc">选择一套内置方案可同时配置浅色与深色背景，并匹配卡片表面和文字颜色。</p>
-
   <GradientPresetSelector
     {activeGradientPresetId}
     on:custom={selectCustomPreset}

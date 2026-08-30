@@ -67,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
   navigation: {
     position: 'left',
     always_expanded: false,
+    top_layout: 'scroll',
   },
   footer_html: '',
   most_visited_count: 8,
@@ -108,17 +109,22 @@ function normalizeBackgroundPresetId(value: unknown): Settings['background_prese
 }
 
 function normalizeNavigationSetting(value: unknown): Settings['navigation'] {
-  return isValidNavigationSetting(value)
-    ? { position: value.position, always_expanded: value.always_expanded }
-    : { ...DEFAULT_SETTINGS.navigation }
+  if (!isValidNavigationSetting(value)) return { ...DEFAULT_SETTINGS.navigation }
+  return {
+    position: value.position,
+    always_expanded: value.always_expanded,
+    top_layout: value.top_layout,
+  }
 }
 
 export function isValidNavigationSetting(value: unknown): value is Settings['navigation'] {
   if (!isRecord(value)) return false
-  return (
-    (value.position === 'left' || value.position === 'top') &&
-    typeof value.always_expanded === 'boolean'
-  )
+  if (value.position !== 'left' && value.position !== 'top') return false
+  if (typeof value.always_expanded !== 'boolean') return false
+  // 旧数据无 top_layout：缺失/非法安全降级为 'scroll'，不丢弃 navigation
+  if (value.top_layout === undefined) value.top_layout = 'scroll'
+  else if (value.top_layout !== 'scroll' && value.top_layout !== 'wrap') value.top_layout = 'scroll'
+  return true
 }
 
 export function readRawSettingsRows(rows: Array<{ key: string; value: string | null }>): Map<string, unknown> {

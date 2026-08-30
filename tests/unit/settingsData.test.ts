@@ -101,21 +101,38 @@ describe('worker settings data helpers', () => {
   })
 
   it('falls back from missing or invalid navigation settings', () => {
-    expect(settingsFromRows([]).navigation).toEqual({ position: 'left', always_expanded: false })
+    expect(settingsFromRows([]).navigation).toEqual({ position: 'left', always_expanded: false, top_layout: 'scroll' })
     expect(settingsFromRows([
       { key: 'navigation', value: JSON.stringify({ position: 'bottom', always_expanded: 'yes' }) },
-    ]).navigation).toEqual({ position: 'left', always_expanded: false })
+    ]).navigation).toEqual({ position: 'left', always_expanded: false, top_layout: 'scroll' })
     expect(settingsFromRows([
       { key: 'navigation', value: JSON.stringify({ position: 'top' }) },
-    ]).navigation).toEqual({ position: 'left', always_expanded: false })
+    ]).navigation).toEqual({ position: 'left', always_expanded: false, top_layout: 'scroll' })
     expect(settingsFromRows([
       { key: 'navigation', value: JSON.stringify({ position: 'top', always_expanded: true }) },
-    ]).navigation).toEqual({ position: 'top', always_expanded: true })
+    ]).navigation).toEqual({ position: 'top', always_expanded: true, top_layout: 'scroll' })
+  })
+
+  it('preserves and normalizes navigation top_layout', () => {
+    // 旧数据无 top_layout：安全降级 'scroll'，保留 position/always_expanded
+    expect(settingsFromRows([
+      { key: 'navigation', value: JSON.stringify({ position: 'top', always_expanded: true }) },
+    ]).navigation).toEqual({ position: 'top', always_expanded: true, top_layout: 'scroll' })
+    expect(settingsFromRows([
+      { key: 'navigation', value: JSON.stringify({ position: 'top', always_expanded: true, top_layout: 'wrap' }) },
+    ]).navigation).toEqual({ position: 'top', always_expanded: true, top_layout: 'wrap' })
+    // 非法 top_layout 回退 'scroll'，其余字段不丢
+    expect(settingsFromRows([
+      { key: 'navigation', value: JSON.stringify({ position: 'top', always_expanded: false, top_layout: 'grid' }) },
+    ]).navigation).toEqual({ position: 'top', always_expanded: false, top_layout: 'scroll' })
   })
 
   it('validates complete navigation payloads for settings updates', () => {
     expect(isValidNavigationSetting({ position: 'left', always_expanded: false })).toBe(true)
     expect(isValidNavigationSetting({ position: 'top', always_expanded: true })).toBe(true)
+    expect(isValidNavigationSetting({ position: 'left', always_expanded: false, top_layout: 'scroll' })).toBe(true)
+    expect(isValidNavigationSetting({ position: 'top', always_expanded: true, top_layout: 'wrap' })).toBe(true)
+    expect(isValidNavigationSetting({ position: 'top', always_expanded: true, top_layout: 'grid' })).toBe(true)
     expect(isValidNavigationSetting({ position: 'bottom', always_expanded: false })).toBe(false)
     expect(isValidNavigationSetting({ position: 'left' })).toBe(false)
   })

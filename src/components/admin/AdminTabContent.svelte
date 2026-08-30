@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { ChangePasswordReq } from '../../../shared/types'
-  import type { AdminBookmarkSummary, AdminCategorySummary, SettingsFormValue } from '../../lib/appData'
-  import type { AdminTab, CategorySortHandler } from '../../lib/adminTypes'
-  import type { ImportSource } from '../../lib/importData'
-  import type { SortHandler } from '../../lib/sortableList'
   import BackupPanel from '../BackupPanel.svelte'
   import BookmarkListPanel from './BookmarkListPanel.svelte'
   import CategoryListPanel from './CategoryListPanel.svelte'
   import AnalyticsPanel from './AnalyticsPanel.svelte'
+  import type { BackupSelection } from '../../lib/appBackup'
+  import type { AdminBookmarkSummary, AdminCategorySummary, SettingsFormValue } from '../../lib/appData'
+  import type { AdminTab, CategorySortHandler } from '../../lib/adminTypes'
+  import type { ImportSource } from '../../lib/importData'
+  import type { SortHandler } from '../../lib/sortableList'
 
   type AdminCategory = AdminCategorySummary
   type AdminBookmark = AdminBookmarkSummary
@@ -29,6 +30,7 @@
   export let settingsError = ''
   export let settingsValue: Partial<SettingsFormValue> | null = null
   export let importing = false
+  export let exporting = false
   export let backupError = ''
   export let backupMessage = ''
   export let importSource: ImportSource = 'cf-navs'
@@ -45,7 +47,7 @@
   export let onChangePassword: ((payload: ChangePasswordReq) => AsyncVoid) | undefined = undefined
   export let onSortCategories: CategorySortHandler | undefined = undefined
   export let onSortBookmarks: SortHandler | undefined = undefined
-  export let onExportData: (() => AsyncVoid) | undefined = undefined
+  export let onExportData: ((selection: BackupSelection) => AsyncVoid) | undefined = undefined
   export let onImportData: ((file: File, source: ImportSource, mode: 'replace' | 'merge') => AsyncVoid) | undefined = undefined
 </script>
 
@@ -106,8 +108,11 @@
     <BackupPanel
       {isAuthenticated}
       {importing}
+      {exporting}
       {backupError}
       {backupMessage}
+      {categories}
+      {bookmarks}
       bind:importSource
       onExportData={onExportData}
       onImportData={onImportData}
@@ -131,6 +136,7 @@
   .settings-panel-wrap {
     min-width: 0;
     width: 100%;
+    /* SettingsPanel reserves this gap in its desktop viewport height. */
     margin: 0 0 24px;
   }
 

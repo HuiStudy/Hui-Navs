@@ -13,6 +13,7 @@
 ## 技术参考
 
 - [项目概览](reference/PROJECT_OVERVIEW.md)
+- [Open GitHub Issues 需求与问题汇总](reference/GITHUB_ISSUES_REQUIREMENTS.md)
 - [API 契约](reference/API_CONTRACT.md)
 - [技术说明](reference/TECHNICAL_NOTES.md)
 - [分类层级设计](reference/CATEGORY_HIERARCHY_DESIGN.md)
@@ -32,6 +33,9 @@
 - [平台优化（加载 / 安全 / 冗余 / UI / 结构）](plans/PLATFORM_OPTIMIZATION_PLAN.md)
 - [后台管理移动端布局](plans/ADMIN_MOBILE_LAYOUT_PLAN.md)
 - [PR #7 合并检查（私密书签 / 跨分类排序 / 浏览器书签同步）](plans/PR7_MERGE_REVIEW_PLAN.md)
+- [部分导出备份 / 顶部导航分行显示 / 右上角按钮对齐（需求评估）](plans/PARTIAL_EXPORT_AND_TOP_NAV_WRAP_REQUIREMENTS.md)
+- [后台设置页面 UI/UX 调整（需求评估）](plans/SETTINGS_UI_UX_ADJUSTMENT_REQUIREMENTS.md)
+- [开发任务规划（设置页 UI/UX + 顶部导航 + 部分导出）](plans/DEV_TASK_BREAKDOWN_UI_NAV_EXPORT.md)
 
 ## 图片
 

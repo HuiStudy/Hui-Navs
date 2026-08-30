@@ -121,7 +121,7 @@ describe('settings form model', () => {
     expect(form.backgrounds.dark.value).toBe('#ffffff')
     expect(form.search_engine.current).toBe('Kagi')
     expect(form.card_size).toEqual({ width: 80, height: 60 })
-    expect(form.navigation).toEqual({ position: 'left', always_expanded: false })
+    expect(form.navigation).toEqual({ position: 'left', always_expanded: false, top_layout: 'scroll' })
   })
 
   it('normalizes and clamps settings before save', () => {
@@ -163,7 +163,7 @@ describe('settings form model', () => {
     expect(normalized.content_layout.max_width).toBe(40)
     expect(normalized.content_layout.margin_x).toBe(0)
     expect(normalized.content_layout.margin_top).toBe(50)
-    expect(normalized.navigation).toEqual({ position: 'left', always_expanded: true })
+    expect(normalized.navigation).toEqual({ position: 'left', always_expanded: true, top_layout: 'scroll' })
     expect(normalized.footer_html).toBe('<p>Footer</p>')
   })
 

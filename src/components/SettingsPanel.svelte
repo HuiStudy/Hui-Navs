@@ -230,8 +230,9 @@
     grid-template-rows: auto minmax(0, 1fr);
     gap: 0;
     position: relative;
-    height: calc(100dvh - 190px);
-    min-height: 0;
+    /* Fill the admin content track while reserving the wrapper's bottom margin. */
+    height: clamp(0px, calc(100dvh - 180px), 960px);
+    min-height: min(560px, calc(100dvh - 180px));
     box-sizing: border-box;
     border: 1px solid var(--sp-border);
     border-radius: 22px;
@@ -372,8 +373,9 @@
 
   .settings-form {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 16px;
     padding: 22px 24px 28px;
     min-height: 0;
     overflow: hidden;
@@ -383,12 +385,12 @@
   .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; align-self: center; }
 
   .settings-submenu {
-    grid-column: span 1;
+    grid-column: 1 / -1;
     align-self: start;
     display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
-    position: sticky;
-    top: 86px;
+    position: static;
   }
 
   .settings-submenu button {
@@ -396,21 +398,21 @@
     gap: 4px;
     border: 1px solid transparent;
     border-radius: 12px;
-    padding: 11px 8px;
-    text-align: left;
+    padding: 10px 12px;
+    text-align: center;
     background: transparent;
     color: var(--sp-muted);
     cursor: pointer;
     transition: background var(--transition-base), border-color var(--transition-base), color var(--transition-base), transform var(--transition-base);
   }
 
-  .settings-submenu button:hover { background: var(--sp-toggle-bg); color: var(--sp-strong); transform: translateX(2px); }
+  .settings-submenu button:hover { background: var(--sp-toggle-bg); color: var(--sp-strong); transform: translateY(-1px); }
   .settings-submenu button.active { border-color: var(--sp-toggle-border); background: var(--sp-toggle-bg); color: var(--sp-accent-strong); box-shadow: 0 6px 16px rgba(75, 83, 70, 0.06); }
   .settings-submenu strong { font-size: 13px; font-weight: 650; }
-  .settings-submenu span { display: none; font-size: 11px; line-height: 1.4; }
+  .settings-submenu span { display: block; font-size: 11px; line-height: 1.4; }
 
   .settings-workspace {
-    grid-column: span 11;
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: minmax(430px, 1.3fr) minmax(340px, 0.9fr);
     gap: 18px;
@@ -500,18 +502,8 @@
       overflow: visible;
     }
 
-    .settings-submenu {
-      grid-column: 1 / -1;
-      position: static;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-
-    .settings-submenu span {
-      display: block;
-    }
 
     .settings-workspace {
-      grid-column: 1 / -1;
       grid-template-columns: minmax(0, 1fr);
       overflow: visible;
     }

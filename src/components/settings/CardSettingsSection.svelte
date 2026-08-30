@@ -1,6 +1,8 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { cloneSettingsForm, type SettingsFormModel } from '../../lib/settingsForm'
+  import Switch from '../ui/Switch.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -21,16 +23,14 @@
   on:change={() => void syncForm()}
 >
   <legend>卡片展示</legend>
-  <p class="group-desc">选择书签卡片的主要表现方式，并决定详情卡片何时显示描述。</p>
-
   <div class="settings-subsection">
     <h3>卡片风格</h3>
-    <div class="radio-group">
+    <div class="radio-group card-style-group">
       <label class="radio-option">
         <input type="radio" bind:group={form.card_style} value="info" />
         <div class="radio-content">
           <strong>详情风格</strong>
-          <p>横向显示图标、标题和可选描述，适合需要补充说明的站点。</p>
+          <p>图文横排</p>
         </div>
       </label>
 
@@ -38,7 +38,7 @@
         <input type="radio" bind:group={form.card_style} value="icon" />
         <div class="radio-content">
           <strong>极简风格</strong>
-          <p>以图标网格展示书签，在相同空间内显示更多入口。</p>
+          <p>纯图标网格</p>
         </div>
       </label>
     </div>
@@ -46,24 +46,24 @@
 
   {#if form.card_style === 'info'}
     <div class="settings-subsection description-mode-field">
-      <h3>描述显示策略</h3>
+      <h3>描述显示策略 <Tooltip text="仅在「详情风格」下生效；单个书签单独配置时优先级更高。" /></h3>
       <div class="radio-group compact">
         <label class="radio-option"><input type="radio" bind:group={form.card_description_mode} value="always" /><span>始终显示</span></label>
         <label class="radio-option"><input type="radio" bind:group={form.card_description_mode} value="hover" /><span>悬停显示</span></label>
         <label class="radio-option"><input type="radio" bind:group={form.card_description_mode} value="hidden" /><span>隐藏</span></label>
       </div>
-      <small>仅用于详情风格；单个书签仍可在编辑时覆盖这一策略。</small>
     </div>
   {:else}
     <div class="settings-subsection icon-title-setting">
       <h3>极简风格标题</h3>
-      <label class="toggle-field icon-title-toggle">
-        <div class="toggle-copy">
-          <span>显示极简卡片标题</span>
-          <p>在图标下方显示书签名称，仅对极简风格生效。</p>
-        </div>
-        <input type="checkbox" bind:checked={form.card_icon_show_title} />
-      </label>
+      <div class="field-switch">
+        <span class="switch-copy">显示极简卡片标题 <Tooltip text="在图标下方显示书签名称，仅对极简风格生效。" /></span>
+        <Switch
+          checked={form.card_icon_show_title}
+          ariaLabel="显示极简卡片标题"
+          on:change={(event) => { form.card_icon_show_title = event.detail; void syncForm() }}
+        />
+      </div>
     </div>
   {/if}
 
@@ -103,6 +103,31 @@
     outline-offset: 1px;
   }
 
+  .card-style-group .radio-option:has(input:checked) {
+    border-color: var(--sp-accent);
+    box-shadow: 0 0 0 1px var(--sp-accent);
+  }
+
+  .field-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--sp-toggle-border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    background: var(--sp-toggle-bg);
+  }
+
+  .switch-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sp-label);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
   .radio-option input[type='radio'] {
     flex: 0 0 auto;
     width: 18px;
@@ -127,15 +152,6 @@
     color: var(--sp-muted);
     font-size: 12px;
     line-height: 1.5;
-  }
-
-  .description-mode-field small {
-    color: var(--sp-muted);
-  }
-
-  .icon-title-toggle {
-    width: 100%;
-    box-sizing: border-box;
   }
 
   @media (max-width: 620px) {

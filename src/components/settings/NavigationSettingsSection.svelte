@@ -1,6 +1,10 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { cloneSettingsForm, type SettingsFormModel } from '../../lib/settingsForm'
+  import Switch from '../ui/Switch.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
+  import InputGroup from '../ui/InputGroup.svelte'
+  import Slider from '../ui/Slider.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -8,6 +12,20 @@
   async function syncForm(): Promise<void> {
     await tick()
     form = cloneSettingsForm(form)
+  }
+
+  $: isLeft = form.navigation.position === 'left'
+  $: isTop = form.navigation.position === 'top'
+
+  function setAlwaysExpanded(value: boolean): void {
+    form.navigation.always_expanded = value
+    void syncForm()
+  }
+
+  function setTopLayout(value: boolean): void {
+    // Switch on = 分行显示(wrap)；off = 横向滚动(scroll)
+    form.navigation.top_layout = value ? 'wrap' : 'scroll'
+    void syncForm()
   }
 </script>
 
@@ -19,7 +37,7 @@
     <h3>分类导航</h3>
     <div class="navigation-grid">
       <div class="field">
-        <span class="field-label">显示位置</span>
+        <span class="field-label">显示位置 <Tooltip text="左侧：侧边悬浮展开；顶部：顶部吸顶横向滚动条。" /></span>
         <div class="segmented-control" role="radiogroup" aria-label="导航栏显示位置">
           <label class:active={form.navigation.position === 'left'}>
             <input
@@ -40,20 +58,31 @@
             <span>顶部固定</span>
           </label>
         </div>
-        <small>左侧：悬停展开的浮动导航；顶部：固定悬浮条，分类较多时可横向滚动。</small>
       </div>
 
-      <div class="toggle-field" class:disabled={form.navigation.position !== 'left'}>
-        <label class="toggle-copy" for="settings-navigation-always-expanded">
-          <span>左侧导航始终展开</span>
-          <p>桌面端固定占位显示完整分类列表，访客仍可在首页手动收起。仅左侧模式生效。</p>
-        </label>
-        <input
-          id="settings-navigation-always-expanded"
-          bind:checked={form.navigation.always_expanded}
-          on:change={() => void syncForm()}
-          type="checkbox"
-          disabled={saving || form.navigation.position !== 'left'}
+      <div class="nav-switch-row" class:disabled={!isLeft}>
+        <span class="nav-switch-copy">
+          左侧导航始终展开
+          <Tooltip text="在大屏下常驻展开分类列表。仅在「左侧悬浮」模式下生效。" />
+        </span>
+        <Switch
+          checked={form.navigation.always_expanded}
+          disabled={saving || !isLeft}
+          ariaLabel="左侧导航始终展开"
+          on:change={(event) => setAlwaysExpanded(event.detail)}
+        />
+      </div>
+
+      <div class="nav-switch-row" class:disabled={!isTop}>
+        <span class="nav-switch-copy">
+          分类分行显示
+          <Tooltip text="开启后顶部分类换行平铺；关闭为横向滚动。分行仅在桌面/宽屏生效，移动端仍为横向滑动。仅「顶部固定」模式下生效。" />
+        </span>
+        <Switch
+          checked={form.navigation.top_layout === 'wrap'}
+          disabled={saving || !isTop}
+          ariaLabel="顶部分类分行显示"
+          on:change={(event) => setTopLayout(event.detail)}
         />
       </div>
     </div>
@@ -62,18 +91,20 @@
   <div class="settings-subsection">
     <h3>内容区域</h3>
     <div class="settings-grid content-layout-grid">
-      <label class="field field-size">
-        <span>最大宽度</span>
-        <div class="inline-input">
-          <input
-            bind:value={form.content_layout.max_width}
-            type="number"
-            min="40"
-            max="2400"
-            step="10"
-            on:input={() => void syncForm()}
-          />
+      <label class="field field-size" for="settings-content-max-width">
+        <span>最大宽度 <Tooltip text="限制首页内容主体最大宽度，超宽屏下两边将自动留白居中。" /></span>
+        <InputGroup
+          inputId="settings-content-max-width"
+          type="number"
+          min={40}
+          max={2400}
+          step={10}
+          bind:value={form.content_layout.max_width}
+          ariaLabel="最大宽度"
+          on:input={() => void syncForm()}
+        >
           <select
+            slot="suffix"
             bind:value={form.content_layout.max_width_unit}
             class="unit-select native-select"
             aria-label="最大宽度单位"
@@ -82,48 +113,44 @@
             <option value="px">px</option>
             <option value="%">%</option>
           </select>
-        </div>
-        <small>首页书签内容区的最大宽度，宽屏下超出部分左右留白。</small>
+        </InputGroup>
       </label>
 
-      <label class="field field-range">
-        <span>桌面左右边距 <em>{form.content_layout.margin_x}px</em></span>
-        <input
+      <div class="field field-range">
+        <Slider
+          label="桌面左右边距"
+          format="px"
+          min={0}
+          max={100}
+          step={1}
           bind:value={form.content_layout.margin_x}
-          type="range"
-          min="0"
-          max="100"
-          step="1"
           on:input={() => void syncForm()}
         />
-        <small>内容区两侧额外留白。</small>
-      </label>
+      </div>
 
-      <label class="field field-range">
-        <span>顶部边距 <em>{form.content_layout.margin_top}%</em></span>
-        <input
+      <div class="field field-range">
+        <Slider
+          label="顶部边距"
+          format="percent"
+          min={0}
+          max={50}
+          step={1}
           bind:value={form.content_layout.margin_top}
-          type="range"
-          min="0"
-          max="50"
-          step="1"
           on:input={() => void syncForm()}
         />
-        <small>标题距页面顶部的距离。</small>
-      </label>
+      </div>
 
-      <label class="field field-range">
-        <span>底部边距 <em>{form.content_layout.margin_bottom}%</em></span>
-        <input
+      <div class="field field-range">
+        <Slider
+          label="底部边距"
+          format="percent"
+          min={0}
+          max={50}
+          step={1}
           bind:value={form.content_layout.margin_bottom}
-          type="range"
-          min="0"
-          max="50"
-          step="1"
           on:input={() => void syncForm()}
         />
-        <small>页面底部预留的空白。</small>
-      </label>
+      </div>
     </div>
   </div>
 </fieldset>
@@ -134,6 +161,30 @@
     grid-template-columns: minmax(260px, 1fr) minmax(300px, 1fr);
     gap: 12px;
     align-items: stretch;
+  }
+
+  .nav-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--sp-toggle-border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    background: var(--sp-toggle-bg);
+  }
+
+  .nav-switch-row.disabled {
+    opacity: 0.58;
+  }
+
+  .nav-switch-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sp-label);
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .field-size,
@@ -157,13 +208,6 @@
     .field-size,
     .content-layout-grid .field-range {
       grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .inline-input {
-      flex-direction: column;
-      align-items: stretch;
     }
   }
 

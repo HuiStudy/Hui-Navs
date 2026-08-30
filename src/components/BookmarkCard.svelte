@@ -332,8 +332,14 @@
 <style>
   .bookmark-card-shell {
     position: relative;
+    z-index: 0;
     min-width: 0;
     contain: layout style;
+  }
+
+  .bookmark-card-shell:hover,
+  .bookmark-card-shell:focus-within {
+    z-index: 1;
   }
 
   .bookmark-card-shell.is-info {

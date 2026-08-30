@@ -128,13 +128,15 @@
     position: fixed;
     top: 1.25rem;
     right: 1.25rem;
-    z-index: 50;
+    z-index: 70;
     display: flex;
     gap: 0.5rem;
   }
 
+  /* 顶部导航模式：与固定导航栏（top:12px、高 52px）首行垂直居中对齐。
+     悬浮在导航栏之上（z-index 70 > 导航栏 60），宽视口右缘重叠时不被遮挡（OQ-C2）。 */
   .floating-actions.below-top-navigation {
-    top: 4.75rem;
+    top: 1.125rem;
   }
 
   .back-to-top-button {
@@ -222,14 +224,15 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 799px) {
     .floating-actions {
       top: 1rem;
       right: 1rem;
     }
 
     .floating-actions.below-top-navigation {
-      top: 4rem;
+      /* 移动端顶部导航 top:8px、高 48px；按钮垂直居中对齐首行，不遮挡搜索框 */
+      top: 0.85rem;
     }
 
     .icon-button {

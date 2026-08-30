@@ -2,6 +2,7 @@
   import { tick } from 'svelte'
   import { faviconImIcon } from '../../lib/icons'
   import { cloneSettingsForm, type SettingsFormModel } from '../../lib/settingsForm'
+  import InputGroup from '../ui/InputGroup.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -58,7 +59,7 @@
 
   <div class="settings-grid search-controls-grid">
     <label class="field field-select">
-      <span>默认引擎</span>
+      <span>默认搜索引擎</span>
       <select class="native-select" bind:value={form.search_engine.current} disabled={form.search_engine.engines.length === 0}>
         {#if form.search_engine.engines.length === 0}
           <option value="">无可用引擎</option>
@@ -70,7 +71,6 @@
           {/each}
         {/if}
       </select>
-      <small>首页搜索框默认选中的引擎；上方可控制搜索框和引擎选择器是否显示。</small>
     </label>
   </div>
 
@@ -79,32 +79,44 @@
       <div class="engine-row">
         <label class="engine-cell">
           <span>名称</span>
-          <input bind:value={engine.name} type="text" placeholder="Google" />
+          <input bind:value={engine.name} type="text" placeholder="引擎名称 (如 Google)" />
         </label>
         <label class="engine-cell">
           <span>图标 URL（可选）</span>
           <div class="engine-icon-control">
-            <input bind:value={engine.icon} type="text" placeholder="留空显示首字母" />
+            <InputGroup
+              type="url"
+              bind:value={engine.icon}
+              placeholder="图标链接"
+              ariaLabel="图标链接"
+              on:input={() => void syncForm()}
+            >
+              <button
+                slot="suffix"
+                type="button"
+                class="favicon-suffix-button"
+                on:click={() => applyFaviconImIcon(index)}
+                disabled={!faviconImIcon(engine.url_template)}
+                aria-label="根据查询模板域名生成图标"
+                title={faviconImIcon(engine.url_template)
+                  ? '根据查询模板域名生成 Favicon.im 图标 URL'
+                  : '请先填写有效的查询模板 URL'}
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </button>
+            </InputGroup>
             {#if canPreviewIcon(engine.icon)}
               <span class="engine-icon-preview" title="搜索引擎图标预览">
                 <img src={engine.icon} alt="" loading="lazy" decoding="async" />
               </span>
             {/if}
-            <button
-              type="button"
-              class="ghost-button favicon-button"
-              on:click={() => applyFaviconImIcon(index)}
-              disabled={!faviconImIcon(engine.url_template)}
-              title={faviconImIcon(engine.url_template)
-                ? '根据查询模板域名生成 Favicon.im 图标 URL'
-                : '请先填写有效的查询模板 URL'}
-            >
-              Favicon.im
-            </button>
           </div>
         </label>
         <label class="engine-cell grow">
-          <span>查询模板（含 {'{q}'} 占位符）</span>
+          <span>搜索 URL 模板 (关键词用 {'{q}'} 代替)</span>
           <input
             bind:value={engine.url_template}
             type="text"
@@ -113,18 +125,24 @@
         </label>
         <button
           type="button"
-          class="danger-button"
+          class="engine-delete-button"
           on:click={() => removeEngine(index)}
           disabled={form.search_engine.engines.length <= 1}
-          aria-label="删除引擎"
+          aria-label="删除"
+          title="删除"
         >
-          删除
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
         </button>
       </div>
     {/each}
   </div>
 
-  <button type="button" class="ghost-button add-engine" on:click={addEngine}>+ 新增搜索引擎</button>
+  <button type="button" class="ghost-button add-engine" on:click={addEngine}>+ 添加搜索引擎</button>
 
   {#if !enginesValid}
     <small class="warn">每个引擎都需填写名称，且查询模板必须包含 {'{q}'} 占位符。</small>
@@ -158,34 +176,26 @@
 
   .engine-icon-control {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 36px auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 7px;
     align-items: center;
     min-width: 0;
   }
 
-  .engine-icon-control input {
+  .engine-icon-control :global(.ui-input-group) {
     grid-column: 1;
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    border: 1px solid var(--sp-input-border);
-    border-radius: 10px;
-    padding: 9px 11px;
-    background: var(--sp-input-bg);
-    color: var(--sp-input-text);
-    font: inherit;
-    font-size: 14px;
-    transition:
-      border-color var(--transition-base),
-      box-shadow var(--transition-base),
-      background var(--transition-base);
   }
 
-  .engine-icon-control input:focus {
-    outline: none;
-    border-color: var(--sp-accent);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  .favicon-suffix-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sp-muted, #64748b);
+    transition: color var(--transition-base);
+  }
+
+  .favicon-suffix-button:hover:not(:disabled) {
+    color: var(--sp-accent);
   }
 
   .engine-icon-preview {
@@ -208,10 +218,33 @@
     object-fit: contain;
   }
 
-  .favicon-button {
-    grid-column: 3;
-    min-height: 36px;
-    padding: 8px 11px;
+  .engine-delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+    border: 1px solid var(--sp-input-border);
+    border-radius: 10px;
+    background: var(--sp-input-bg);
+    color: var(--sp-muted, #64748b);
+    cursor: pointer;
+    transition:
+      color var(--transition-base),
+      border-color var(--transition-base),
+      background var(--transition-base);
+  }
+
+  .engine-delete-button:hover:not(:disabled) {
+    color: #dc2626;
+    border-color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
+
+  .engine-delete-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   .add-engine {
@@ -229,7 +262,7 @@
     }
 
     .engine-cell.grow,
-    .engine-row .danger-button {
+    .engine-delete-button {
       width: 100%;
     }
   }
@@ -237,11 +270,6 @@
   @media (max-width: 560px) {
     .engine-icon-control {
       grid-template-columns: minmax(0, 1fr) 36px;
-    }
-
-    .favicon-button {
-      grid-column: 1 / -1;
-      width: 100%;
     }
   }
 
@@ -256,7 +284,7 @@
     }
 
     .engine-cell.grow,
-    .engine-row .danger-button {
+    .engine-delete-button {
       width: 100%;
     }
   }

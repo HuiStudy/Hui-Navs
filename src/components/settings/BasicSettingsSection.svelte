@@ -6,6 +6,9 @@
     type SettingsFormModel,
   } from '../../lib/settingsForm'
   import ColorAlphaInput from '../ColorAlphaInput.svelte'
+  import Switch from '../ui/Switch.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
+  import Slider from '../ui/Slider.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -14,8 +17,6 @@
     await tick()
     form = cloneSettingsForm(form)
   }
-
-  $: currentThemeHint = themeOptions.find((option) => option.value === form.theme)?.hint ?? ''
 </script>
 
 <fieldset id="settings-section-basic" class="group group-wide" disabled={saving}>
@@ -24,16 +25,15 @@
 
   <div class="form-grid base-grid">
     <label class="field field-title">
-      <span>站点标题</span>
+      <span>站点标题 <span class="req" aria-hidden="true">*</span></span>
       <input
         bind:value={form.site_title}
         type="text"
-        placeholder="例如：CF-Navs 导航站"
+        placeholder="请输入站点标题"
         maxlength="80"
         required
         on:input={() => void syncForm()}
       />
-      <small>显示在浏览器标签页、首页顶部和管理界面中，必填。</small>
     </label>
 
     <div class="field field-title-color">
@@ -41,55 +41,45 @@
       <ColorAlphaInput
         bind:value={form.site_title_color}
         on:change={() => void syncForm()}
-        placeholder="留空则跟随主题"
+        placeholder="留空跟随主题文字色"
         inputLabel="首页标题颜色值"
         swatchTitle="选择首页标题颜色"
         alphaText="首页标题透明度"
       />
-      <small>留空时跟随当前主题文字颜色；配色方案也会提供推荐值。</small>
     </div>
 
-    <label class="field field-title-size">
-      <span>首页标题字号 <em>{form.site_title_font_size}px</em></span>
-      <input
+    <div class="field field-title-size">
+      <Slider
+        label="首页标题字号"
+        format="px"
+        min={16}
+        max={72}
+        step={1}
         bind:value={form.site_title_font_size}
-        type="range"
-        min="16"
-        max="72"
-        step="1"
         on:input={() => void syncForm()}
       />
-      <small>仅调整首页主标题大小，不影响浏览器标签页文字。</small>
-    </label>
+    </div>
 
-    <div class="toggle-field field-toggle">
-      <label class="toggle-copy" for="settings-public-mode">
-        <span>公开模式</span>
-        <p>开启后，任何访客无需登录即可浏览首页书签；关闭则仅管理员登录后可见。</p>
-      </label>
-      <input
-        id="settings-public-mode"
-        bind:checked={form.public_mode}
-        on:change={() => void syncForm()}
-        type="checkbox"
+    <div class="field-switch field-toggle">
+      <span class="switch-copy">公开模式 <Tooltip text="开启后无需登录即可浏览；关闭后仅管理员登录可见。" /></span>
+      <Switch
+        checked={form.public_mode}
+        ariaLabel="公开模式"
+        on:change={(event) => { form.public_mode = event.detail; void syncForm() }}
       />
     </div>
 
-    <div class="toggle-field field-toggle" data-testid="browser-sync-setting">
-      <label class="toggle-copy" for="settings-browser-sync">
-        <span>浏览器书签同步</span>
-        <p>开启后，浏览器扩展新增的书签会单向同步到“浏览器新增收藏”分类；不会删除或覆盖导航页现有书签。</p>
-      </label>
-      <input
-        id="settings-browser-sync"
-        bind:checked={form.browser_sync_enabled}
-        on:change={() => void syncForm()}
-        type="checkbox"
+    <div class="field-switch field-toggle" data-testid="browser-sync-setting">
+      <span class="switch-copy">浏览器书签同步 <Tooltip text="开启后，浏览器扩展新增的书签会单向同步到「浏览器新增收藏」分类；不会删除或覆盖导航页现有书签。" /></span>
+      <Switch
+        checked={form.browser_sync_enabled}
+        ariaLabel="浏览器书签同步"
+        on:change={(event) => { form.browser_sync_enabled = event.detail; void syncForm() }}
       />
     </div>
 
     <div class="field field-theme">
-      <span class="field-label">默认主题模式</span>
+      <span class="field-label">默认主题模式 <Tooltip text="设置新访客首次访问时的默认主题，访客仍可在首页手动切换。" /></span>
       <div class="segmented-control" role="radiogroup" aria-label="默认主题模式">
         {#each themeOptions as option (option.value)}
           <label class:active={form.theme === option.value}>
@@ -103,7 +93,6 @@
           </label>
         {/each}
       </div>
-      <small>{currentThemeHint}访客仍可在首页临时切换浅色或深色。</small>
     </div>
 
   </div>
@@ -111,14 +100,13 @@
   <div class="settings-subsection external-resource-section">
     <h3>外部资源</h3>
     <label class="field field-image-host">
-      <span>图床服务地址（可选）</span>
+      <span>图床服务地址（可选） <Tooltip text="用于背景图、分类与书签图标的上传接口。留空则仅支持填写外链。" /></span>
       <input
         bind:value={form.image_host_url}
         type="url"
-        placeholder="https://img.example.com"
+        placeholder="https://your-domain.com"
         on:input={() => void syncForm()}
       />
-      <small>用于背景图片、分类图标和书签自定义图标的上传入口。</small>
     </label>
   </div>
 </fieldset>
@@ -136,6 +124,30 @@
   .field-toggle,
   .field-theme {
     grid-column: span 6;
+  }
+
+  .field-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--sp-toggle-border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    background: var(--sp-toggle-bg);
+  }
+
+  .switch-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sp-label);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .req {
+    color: var(--sp-warn, #dc2626);
   }
 
   .segmented-control {

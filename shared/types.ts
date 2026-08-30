@@ -116,6 +116,7 @@ export interface ContentLayoutSetting {
 export interface NavigationSetting {
   position: 'left' | 'top'
   always_expanded: boolean
+  top_layout: 'scroll' | 'wrap'
 }
 
 // 卡片风格类型

@@ -113,16 +113,20 @@
     margin_bottom: 0,
   }
   $: contentMaxWidth = `${contentLayout.max_width}${contentLayout.max_width_unit}`
-  $: navigation = settings?.navigation ?? { position: 'left', always_expanded: false } satisfies NavigationSetting
+  $: navigation = settings?.navigation ?? { position: 'left', always_expanded: false, top_layout: 'scroll' } satisfies NavigationSetting
   $: isTopNavigation = navigation.position === 'top'
   $: navigationScrollOffset = isTopNavigation ? TOP_NAV_SCROLL_TOP_OFFSET : LEFT_NAV_SCROLL_TOP_OFFSET
   $: cardTextColor = settings?.card_text_color?.trim() ?? ''
+  let topNavHeight = 0
+  // 顶部分行导航高度增长时，用实测高度驱动首页顶部留白（+ 12px 顶距 + 12px 余量）。
+  $: topNavPadding = isTopNavigation && topNavHeight > 0 ? `${Math.round(topNavHeight + 24)}px` : ''
   $: homeShellStyle = [
     `--content-max-width: ${contentMaxWidth}`,
     `--content-margin-x: ${contentLayout.margin_x}px`,
     `--content-margin-top: ${contentLayout.margin_top}%`,
     `--content-margin-bottom: ${contentLayout.margin_bottom}%`,
     cardTextColor ? `--card-text-color: ${cardTextColor}` : '',
+    topNavPadding ? `--top-nav-padding: ${topNavPadding}` : '',
   ].filter(Boolean).join('; ')
   $: pageDescription = totalBookmarks > 0
     ? `已整理 ${sortedCategories.length} 个分类，收录 ${totalBookmarks} 个站点。`
@@ -382,6 +386,7 @@
     {navigation}
     onNavigate={handleNavigate}
     onPersistentExpansionChange={(expanded) => (persistentLeftExpanded = expanded)}
+    onTopNavHeightChange={(height) => (topNavHeight = height)}
   />
 
   <div class="content-layout" bind:this={contentAnchor}>
@@ -592,7 +597,7 @@
   }
 
   .home-shell.top-navigation-layout {
-    padding-top: 5.25rem;
+    padding-top: var(--top-nav-padding, 5.25rem);
   }
 
   @media (min-width: 800px) {
@@ -810,12 +815,13 @@
     color: inherit;
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 799px) {
     .home-shell {
       padding: 1rem 1rem var(--content-margin-bottom, 0%);
     }
 
     .home-shell.top-navigation-layout {
+      /* 移动端顶部导航固定 48px，不随桌面分行高度变化 */
       padding-top: 4.5rem;
     }
 

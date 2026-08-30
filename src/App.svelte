@@ -14,6 +14,7 @@
   import Home from './views/Home.svelte'
   import Install from './views/Install.svelte'
   import { api, getErrorMessage, isUnauthorizedError } from './lib/api'
+  import type { BackupSelection as BackupSelectionInput } from './lib/appBackup'
   import { clearCachedAdminData } from './lib/adminDataCache'
   import { clearCachedPublicData } from './lib/publicDataCache'
   import { toastStore } from './lib/toast'
@@ -891,8 +892,8 @@
     await refreshAdminDataAfterMutation()
   }
 
-  function handleExportData(): void {
-    exportDataToFile(importExportState, adminData, (next) => {
+  async function handleExportData(selection: BackupSelectionInput): Promise<void> {
+    await exportDataToFile(importExportState, selection, (next) => {
       importExportState = next
     })
   }
@@ -1067,6 +1068,7 @@
         onSortBookmarks={handleSortBookmarks}
         onSelectTab={handleAdminTabChange}
         importing={importExportState.importing}
+        exporting={importExportState.exporting}
         backupError={importExportState.backupError}
         backupMessage={importExportState.backupMessage}
         onExportData={handleExportData}

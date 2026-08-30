@@ -57,7 +57,6 @@
         </span>
         <span class="preset-copy">
           <strong>{preset.label}</strong>
-          <small>{preset.description}</small>
         </span>
       </label>
       {/each}
@@ -159,7 +158,7 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
     min-width: 0;
-    min-height: 84px;
+    min-height: 62px;
     border: 1px solid var(--sp-option-border);
     border-radius: 12px;
     padding: 8px 10px;

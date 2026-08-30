@@ -94,6 +94,23 @@ describe('navigation layout helpers', () => {
     expect(source).toContain('closeTopMenu(true)')
   })
 
+  it('does not retain a submenu for a childless or non-top navigation item', () => {
+    const source = readFileSync('src/components/Sidebar.svelte', 'utf8')
+
+    expect(source).toContain('if (!item.children?.length) return')
+    expect(source).toContain('if (openTopMenuId && (!isTop || !items.some((item) => (')
+    expect(source).toContain('String(item.id) === openTopMenuId && Boolean(item.children?.length)')
+  })
+
+  it('raises the hovered bookmark shell with its tooltip', () => {
+    const source = readFileSync('src/components/BookmarkCard.svelte', 'utf8')
+
+    expect(source).toContain('z-index: 0;')
+    expect(source).toContain('.bookmark-card-shell:hover,')
+    expect(source).toContain('.bookmark-card-shell:focus-within')
+    expect(source).toContain('z-index: 1;')
+  })
+
   it('hides native sidebars scrollbars without disabling vertical scrolling', () => {
     const source = readFileSync('src/components/Sidebar.svelte', 'utf8')
 
