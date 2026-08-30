@@ -98,6 +98,7 @@
   export let onSelectTab: ((tab: AdminTab) => AsyncVoid) | undefined = undefined
 
   export let importing = false
+  export let exporting = false
   export let backupError = ''
   export let backupMessage = ''
   export let onExportData: ((selection: BackupSelection) => AsyncVoid) | undefined = undefined
@@ -152,6 +153,7 @@
       {settingsError}
       {settingsValue}
       {importing}
+      {exporting}
       {backupError}
       {backupMessage}
       bind:importSource

@@ -30,6 +30,7 @@
   export let settingsError = ''
   export let settingsValue: Partial<SettingsFormValue> | null = null
   export let importing = false
+  export let exporting = false
   export let backupError = ''
   export let backupMessage = ''
   export let importSource: ImportSource = 'cf-navs'
@@ -107,6 +108,7 @@
     <BackupPanel
       {isAuthenticated}
       {importing}
+      {exporting}
       {backupError}
       {backupMessage}
       {categories}

@@ -105,6 +105,12 @@
 
   $: if (isTop || activeParentId == null) revealedActiveParentId = ''
 
+  $: if (openTopMenuId && (!isTop || !items.some((item) => (
+    String(item.id) === openTopMenuId && Boolean(item.children?.length)
+  )))) {
+    closeTopMenu()
+  }
+
   $: if (!isTop && activeParentId != null && String(activeParentId) !== revealedActiveParentId) {
     revealedActiveParentId = String(activeParentId)
     expandedParentIds = new Set([...expandedParentIds, revealedActiveParentId])
@@ -188,6 +194,7 @@
   }
 
   function toggleParent(item: NavigationItem, event?: MouseEvent): void {
+    if (!item.children?.length) return
     const id = String(item.id)
     if (isTop) {
       if (openTopMenuId === id) {

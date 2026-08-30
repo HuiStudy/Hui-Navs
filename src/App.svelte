@@ -892,10 +892,10 @@
     await refreshAdminDataAfterMutation()
   }
 
-  function handleExportData(selection: BackupSelectionInput): void {
-    exportDataToFile(importExportState, adminData, (next) => {
+  async function handleExportData(selection: BackupSelectionInput): Promise<void> {
+    await exportDataToFile(importExportState, selection, (next) => {
       importExportState = next
-    }, selection)
+    })
   }
 
   async function handleImportData(file: File, source: ImportSource, mode: 'replace' | 'merge'): Promise<void> {
@@ -1068,6 +1068,7 @@
         onSortBookmarks={handleSortBookmarks}
         onSelectTab={handleAdminTabChange}
         importing={importExportState.importing}
+        exporting={importExportState.exporting}
         backupError={importExportState.backupError}
         backupMessage={importExportState.backupMessage}
         onExportData={handleExportData}

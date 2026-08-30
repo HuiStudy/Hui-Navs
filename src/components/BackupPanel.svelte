@@ -9,6 +9,7 @@
 
   export let isAuthenticated = false
   export let importing = false
+  export let exporting = false
   export let backupError = ''
   export let backupMessage = ''
   export let importSource: ImportSource = 'cf-navs'
@@ -20,6 +21,7 @@
   let importInput: HTMLInputElement | null = null
   let importMode: 'replace' | 'merge' = 'replace'
   let selectedCategoryIds = new Set<number>()
+  let expandedRootIds = new Set<number>()
   let includeSettings = true
   let initializedSelection = false
 
@@ -41,18 +43,20 @@
   }, new Map<number, number>())
   $: if (!initializedSelection && categories.length > 0) {
     selectedCategoryIds = new Set(categories.map((category) => Number(category.id)))
+    expandedRootIds = new Set(roots.map((root) => Number(root.id)))
     initializedSelection = true
   }
 
-  function rootSelectionState(root: CategoryOption): RootSelectionState {
+  function rootSelectionState(root: CategoryOption, selectedIds: Set<number>): RootSelectionState {
     const ids = [Number(root.id), ...(childrenByParent.get(Number(root.id)) ?? []).map((child) => Number(child.id))]
-    const selectedCount = ids.filter((id) => selectedCategoryIds.has(id)).length
+    const selectedCount = ids.filter((id) => selectedIds.has(id)).length
     return { checked: selectedCount === ids.length, indeterminate: selectedCount > 0 && selectedCount < ids.length }
   }
 
+
   function toggleRoot(root: CategoryOption): void {
     const ids = [Number(root.id), ...(childrenByParent.get(Number(root.id)) ?? []).map((child) => Number(child.id))]
-    const state = rootSelectionState(root)
+    const state = rootSelectionState(root, selectedCategoryIds)
     const next = new Set(selectedCategoryIds)
     for (const id of ids) {
       if (state.checked) next.delete(id)
@@ -75,6 +79,13 @@
 
   function clearSelection(): void {
     selectedCategoryIds = new Set()
+  }
+
+  function toggleRootExpanded(rootId: number): void {
+    const next = new Set(expandedRootIds)
+    if (next.has(rootId)) next.delete(rootId)
+    else next.add(rootId)
+    expandedRootIds = next
   }
 
   function indeterminate(node: HTMLInputElement, value: boolean): { update: (next: boolean) => void } {
@@ -145,30 +156,51 @@
             <p class="category-tree-empty">暂无分类</p>
           {:else}
             {#each roots as root (root.id)}
-              {@const rootState = rootSelectionState(root)}
+              {@const rootId = Number(root.id)}
+              {@const rootState = rootSelectionState(root, selectedCategoryIds)}
+              {@const children = childrenByParent.get(rootId) ?? []}
+              {@const isExpanded = expandedRootIds.has(rootId)}
               <div class="category-tree-root">
-                <label class="category-tree-row category-tree-row-root">
-                  <input
-                    type="checkbox"
-                    checked={rootState.checked}
-                    aria-checked={rootState.indeterminate ? 'mixed' : rootState.checked}
-                    use:indeterminate={rootState.indeterminate}
-                    on:change={() => toggleRoot(root)}
-                  />
-                  <span class="category-tree-title">{root.title}</span>
-                  <span class="category-tree-count">{bookmarkCountByCategory.get(Number(root.id)) ?? 0}</span>
-                </label>
-                {#each childrenByParent.get(Number(root.id)) ?? [] as child (child.id)}
-                  <label class="category-tree-row category-tree-row-child">
+                <div class="category-tree-root-header">
+                  <label class="category-tree-row category-tree-row-root">
                     <input
                       type="checkbox"
-                      checked={selectedCategoryIds.has(Number(child.id))}
-                      on:change={() => toggleCategory(child)}
+                      checked={rootState.checked}
+                      aria-checked={rootState.indeterminate ? 'mixed' : rootState.checked}
+                      use:indeterminate={rootState.indeterminate}
+                      on:change={() => toggleRoot(root)}
                     />
-                    <span class="category-tree-title">{child.title}</span>
-                    <span class="category-tree-count">{bookmarkCountByCategory.get(Number(child.id)) ?? 0}</span>
+                    <span class="category-tree-title">{root.title}</span>
+                    <span class="category-tree-count">{bookmarkCountByCategory.get(rootId) ?? 0}</span>
                   </label>
-                {/each}
+                  {#if children.length > 0}
+                    <button
+                      type="button"
+                      class="category-tree-toggle"
+                      aria-expanded={isExpanded}
+                      aria-controls={`export-category-children-${root.id}`}
+                      aria-label={`${isExpanded ? '收起' : '展开'} ${root.title} 子分类`}
+                      on:click={() => toggleRootExpanded(rootId)}
+                    >
+                      <span aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+                    </button>
+                  {/if}
+                </div>
+                {#if isExpanded && children.length > 0}
+                  <div class="category-tree-children" id={`export-category-children-${root.id}`}>
+                    {#each children as child (child.id)}
+                      <label class="category-tree-row category-tree-row-child">
+                        <input
+                          type="checkbox"
+                          checked={selectedCategoryIds.has(Number(child.id))}
+                          on:change={() => toggleCategory(child)}
+                        />
+                        <span class="category-tree-title">{child.title}</span>
+                        <span class="category-tree-count">{bookmarkCountByCategory.get(Number(child.id)) ?? 0}</span>
+                      </label>
+                    {/each}
+                  </div>
+                {/if}
               </div>
             {/each}
           {/if}
@@ -177,8 +209,8 @@
         {/if}
         </div>
       </div>
-      <button type="button" class="primary-button" on:click={handleExport} disabled={!isAuthenticated || selectedCategoryIds.size === 0}>
-        导出备份
+      <button type="button" class="primary-button" on:click={handleExport} disabled={!isAuthenticated || importing || exporting || selectedCategoryIds.size === 0}>
+        {#if exporting}获取最新数据...{:else}导出备份{/if}
       </button>
     </section>
 
@@ -295,6 +327,42 @@
   }
 
   .category-tree-root {
+    display: grid;
+    gap: 2px;
+  }
+
+  .category-tree-root-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .category-tree-root-header .category-tree-row {
+    flex: 1 1 auto;
+  }
+
+  .category-tree-toggle {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--admin-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .category-tree-toggle:hover,
+  .category-tree-toggle:focus-visible {
+    border-color: var(--admin-input-hover-border);
+    background: var(--admin-control-hover-bg);
+    color: var(--admin-text);
+    outline: none;
+  }
+
+  .category-tree-children {
     display: grid;
     gap: 2px;
   }
