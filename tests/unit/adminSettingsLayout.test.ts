@@ -68,6 +68,21 @@ describe('admin settings layout', () => {
     expect(panel).not.toContain('group::before')
   })
 
+  it('bounds the desktop settings card height to the available shell', () => {
+    const panel = readFileSync('src/components/SettingsPanel.svelte', 'utf8')
+    const panelRule = panel.match(/\.settings-panel\s*\{([^}]+)\}/)?.[1] ?? ''
+    const desktopCollapseStart = panel.indexOf('@media (max-width: 1320px)')
+    const desktopCollapseEnd = panel.indexOf('@media (max-width: 960px)')
+    const desktopCollapseRule = panel.slice(desktopCollapseStart, desktopCollapseEnd)
+
+    expect(panelRule).toContain('height: clamp(0px, calc(100dvh - 156px), 960px)')
+    expect(panelRule).toContain('min-height: min(560px, calc(100dvh - 156px))')
+    expect(desktopCollapseRule).toContain('height: auto;')
+    expect(desktopCollapseRule).toContain('min-height: 0;')
+    expect(desktopCollapseRule).toContain('overflow: visible;')
+    expect(desktopCollapseRule).toContain('grid-template-columns: minmax(0, 1fr)')
+  })
+
   it('places theme, search, image-host, and layout controls in their current sections', () => {
     const basic = readFileSync('src/components/settings/BasicSettingsSection.svelte', 'utf8')
     const layout = readFileSync('src/components/settings/NavigationSettingsSection.svelte', 'utf8')

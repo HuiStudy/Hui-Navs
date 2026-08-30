@@ -230,8 +230,9 @@
     grid-template-rows: auto minmax(0, 1fr);
     gap: 0;
     position: relative;
-    height: calc(100dvh - 190px);
-    min-height: 0;
+    /* Fill the admin content track without growing indefinitely on tall screens. */
+    height: clamp(0px, calc(100dvh - 156px), 960px);
+    min-height: min(560px, calc(100dvh - 156px));
     box-sizing: border-box;
     border: 1px solid var(--sp-border);
     border-radius: 22px;
