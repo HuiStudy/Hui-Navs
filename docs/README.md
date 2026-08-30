@@ -13,6 +13,7 @@
 ## 技术参考
 
 - [项目概览](reference/PROJECT_OVERVIEW.md)
+- [Open GitHub Issues 需求与问题汇总](reference/GITHUB_ISSUES_REQUIREMENTS.md)
 - [API 契约](reference/API_CONTRACT.md)
 - [技术说明](reference/TECHNICAL_NOTES.md)
 - [分类层级设计](reference/CATEGORY_HIERARCHY_DESIGN.md)
