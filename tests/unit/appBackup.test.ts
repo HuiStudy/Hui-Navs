@@ -7,6 +7,7 @@ import {
   createBackupFileName,
   createBackupPayload,
   createImportSuccessMessage,
+  selectBackupSubset,
 } from '../../src/lib/appBackup'
 
 const category: Category = {
@@ -76,5 +77,35 @@ describe('app backup helpers', () => {
     expect(artifact.json).toBe(JSON.stringify(artifact.payload, null, 2))
     expect(artifact.fileName).toBe('cf-navs-backup-1970-01-01.json')
     expect(artifact.message).toBe('已导出 1 个分类、1 个书签。')
+  })
+
+  it('filters selected categories and bookmarks while supplying required parents', () => {
+    const childCategory: Category = { ...category, id: 2, parent_id: 1, title: 'Dev' }
+    const childBookmark: Bookmark = { ...bookmark, id: 11, category_id: 2, title: 'TypeScript' }
+    const adminData: AdminData = {
+      categories: [category, childCategory],
+      bookmarks: [bookmark, childBookmark],
+      settings: { site_title: 'CF-Navs' } as AdminData['settings'],
+    }
+
+    expect(selectBackupSubset(adminData, { categoryIds: new Set([2]), includeSettings: true })).toEqual({
+      categories: [category, childCategory],
+      bookmarks: [childBookmark],
+      settings: adminData.settings,
+    })
+  })
+
+  it('omits settings when disabled and preserves an all-category selection', () => {
+    const adminData: AdminData = { categories: [category], bookmarks: [bookmark], settings: { site_title: 'CF-Navs' } as AdminData['settings'] }
+    expect(selectBackupSubset(adminData, { categoryIds: new Set([1]), includeSettings: false })).toEqual({
+      categories: [category],
+      bookmarks: [bookmark],
+      settings: null,
+    })
+    expect(selectBackupSubset(adminData, { categoryIds: new Set(), includeSettings: true })).toEqual({
+      categories: [],
+      bookmarks: [],
+      settings: adminData.settings,
+    })
   })
 })

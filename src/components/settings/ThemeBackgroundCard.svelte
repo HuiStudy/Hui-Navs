@@ -11,6 +11,9 @@
   } from '../../lib/settingsForm'
   import ColorAlphaInput from '../ColorAlphaInput.svelte'
   import GradientBackgroundInput from '../GradientBackgroundInput.svelte'
+  import InputGroup from '../ui/InputGroup.svelte'
+  import Slider from '../ui/Slider.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
 
   export let theme: 'light' | 'dark'
   export let background: BackgroundSetting
@@ -25,11 +28,8 @@
   $: isLight = theme === 'light'
   $: title = isLight ? '浅色模式背景' : '深色模式背景'
   $: badge = isLight ? 'Light' : 'Dark'
-  $: hint = backgroundTypeOptions.find((option) => option.value === background.type)?.hint ?? ''
+  $: imagePlaceholder = '请输入图片 URL 或点击右侧上传'
   $: colorPlaceholder = isLight ? '#f8fafc' : '#0f172a'
-  $: imagePlaceholder = isLight
-    ? 'https://img.example.com/light-bg.png'
-    : 'https://img.example.com/dark-bg.png'
   $: imageInputLabel = isLight ? '浅色背景图片地址' : '深色背景图片地址'
   $: gradientDefaults = isLight ? defaultLightGradient : defaultDarkGradient
   $: defaults = isLight
@@ -83,7 +83,6 @@
             </label>
           {/each}
         </div>
-        <small class="background-type-hint">{hint}</small>
       </div>
 
       <div class="field background-value-field">
@@ -107,39 +106,31 @@
             endLabel="结束颜色"
           />
         {:else}
-          <div class="inline-input">
-            <input
-              bind:value={background.value}
-              type="text"
-              on:input={() => void syncBackground()}
-              placeholder={imagePlaceholder}
-              aria-label={imageInputLabel}
-            />
-            {#if uploadHost}
-              <button type="button" class="ghost-button" on:click={() => dispatch('upload')}>
-                打开图床上传 ↗
-              </button>
-            {/if}
-          </div>
-        {/if}
-        {#if background.type === 'color'}
-          <small>支持 #hex、rgb() 和 rgba()，也可点击色块选择颜色。</small>
-        {:else if background.type === 'gradient'}
-          <small>使用两端颜色生成 CSS 渐变。</small>
-        {:else}
-          {#if uploadHost}
-            <small>填写图片外链 URL，或打开已配置图床上传。</small>
-          {:else}
-            <small>填写图片外链 URL；配置图床地址后可快速打开上传页。</small>
-          {/if}
+          <InputGroup
+            type="url"
+            bind:value={background.value}
+            placeholder={imagePlaceholder}
+            ariaLabel={imageInputLabel}
+            on:input={() => void syncBackground()}
+          >
+            <svelte:fragment slot="suffix">
+              {#if uploadHost}
+                <button type="button" class="ghost-button" on:click={() => dispatch('upload')}>
+                  打开图床上传 ↗
+                </button>
+              {/if}
+            </svelte:fragment>
+          </InputGroup>
         {/if}
         {#if !valid}
           <small class="warn">请填写{isLight ? '浅色' : '深色'}模式背景值。</small>
         {/if}
       </div>
+    </div>
 
+    <div class="background-range-grid">
       <div class="field background-mask-field">
-        <span>遮罩颜色</span>
+        <span>遮罩颜色 <Tooltip text="覆盖在背景图上的蒙层颜色，浅色模式推荐白/浅灰，深色推荐黑/深蓝。" /></span>
         <ColorAlphaInput
           bind:value={background.maskColor}
           bind:alpha={background.mask}
@@ -149,22 +140,31 @@
           swatchTitle={`选择${title}遮罩颜色`}
           alphaText={`${title}遮罩透明度`}
         />
-        <small>{isLight ? '浅色模式通常使用白色或浅灰。' : '深色模式通常使用黑色或深蓝。'}</small>
       </div>
-    </div>
 
-    <div class="background-range-grid">
-      <label class="field">
-        <span>模糊度 <em>{background.blur}px</em></span>
-        <input bind:value={background.blur} type="range" min="0" max="40" step="1" on:input={() => void syncBackground()} />
-        <small>对图片/渐变背景应用模糊，0 表示不模糊。</small>
-      </label>
+      <div class="field">
+        <Slider
+          label="模糊度"
+          format="px"
+          min={0}
+          max={40}
+          step={1}
+          bind:value={background.blur}
+          on:input={() => void syncBackground()}
+        />
+      </div>
 
-      <label class="field">
-        <span>遮罩透明度 <em>{background.mask.toFixed(2)}</em></span>
-        <input bind:value={background.mask} type="range" min="0" max="1" step="0.05" on:input={() => void syncBackground()} />
-        <small>叠加在背景上的遮罩，数值越大背景越淡。</small>
-      </label>
+      <div class="field">
+        <Slider
+          label="遮罩透明度"
+          format="ratio-percent"
+          min={0}
+          max={1}
+          step={0.05}
+          bind:value={background.mask}
+          on:input={() => void syncBackground()}
+        />
+      </div>
     </div>
   </div>
 </section>
@@ -209,7 +209,7 @@
 
   .background-main-row {
     display: grid;
-    grid-template-columns: minmax(120px, 0.55fr) minmax(220px, 1.45fr) minmax(190px, 1fr);
+    grid-template-columns: minmax(120px, 0.5fr) minmax(240px, 1.5fr);
     gap: 10px;
     min-width: 0;
     align-items: start;
@@ -217,7 +217,7 @@
 
   .background-range-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     min-width: 0;
   }
@@ -235,13 +235,6 @@
 
   .background-value-field {
     min-width: 0;
-  }
-
-  .background-type-hint {
-    display: block;
-    min-width: 0;
-    font-size: 12px;
-    line-height: 1.35;
   }
 
   .background-type-options {
@@ -297,10 +290,6 @@
     min-width: 0;
   }
 
-  .background-value-field .inline-input {
-    min-width: 0;
-  }
-
   .background-value-field .ghost-button {
     flex: 0 0 auto;
     padding-inline: 12px;
@@ -309,12 +298,6 @@
   .field span {
     color: var(--sp-label);
     font-size: 14px;
-    font-weight: 600;
-  }
-
-  .field span em {
-    font-style: normal;
-    color: var(--sp-accent);
     font-weight: 600;
   }
 
@@ -344,27 +327,10 @@
       background var(--transition-base);
   }
 
-  input[type='range'] {
-    padding: 0;
-    accent-color: var(--sp-accent);
-  }
-
   input:focus {
     outline: none;
     border-color: var(--sp-accent);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-  }
-
-  .inline-input {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    min-width: 0;
-  }
-
-  .inline-input input {
-    flex: 1 1 0;
-    min-width: 0;
   }
 
   .ghost-button {
@@ -405,12 +371,6 @@
       width: 100%;
       min-width: 0;
     }
-
-    .background-value-field .inline-input {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
     .background-value-field .ghost-button {
       width: 100%;
     }
@@ -421,12 +381,6 @@
     .background-range-grid {
       grid-template-columns: 1fr;
     }
-
-    .background-value-field .inline-input {
-      align-items: stretch;
-      flex-direction: column;
-    }
-
     .background-value-field .ghost-button {
       width: 100%;
     }

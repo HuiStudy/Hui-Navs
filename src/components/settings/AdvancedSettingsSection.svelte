@@ -9,6 +9,9 @@
   } from '../../lib/settingsForm'
   import ColorAlphaInput from '../ColorAlphaInput.svelte'
   import ThemeBackgroundCard from './ThemeBackgroundCard.svelte'
+  import InputGroup from '../ui/InputGroup.svelte'
+  import Slider from '../ui/Slider.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -19,6 +22,10 @@
   $: lightBackgroundValid = normalizedForm.backgrounds.light.value.length > 0
   $: darkBackgroundValid = normalizedForm.backgrounds.dark.value.length > 0
   $: uploadHost = form.image_host_url.trim()
+
+  let activeTheme: 'light' | 'dark' = 'light'
+  $: activeBackground = activeTheme === 'light' ? form.backgrounds.light : form.backgrounds.dark
+  $: activeBackgroundValid = activeTheme === 'light' ? lightBackgroundValid : darkBackgroundValid
 
   async function syncForm(): Promise<void> {
     await tick()
@@ -72,44 +79,80 @@
           <p>修改任一背景内容时，当前配色方案会自动切换为自定义。</p>
         </div>
 
-        <div class="theme-background-grid">
-          <ThemeBackgroundCard
-            theme="light"
-            background={form.backgrounds.light}
-            valid={lightBackgroundValid}
-            {uploadHost}
-            on:change={(event) => updateThemeBackground('light', event.detail)}
-            on:upload={openUpload}
-          />
+        <div class="theme-tab-switcher segmented-control" role="tablist" aria-label="背景模式">
+          <label class:active={activeTheme === 'light'}>
+            <input type="radio" name="advanced-theme-tab" value="light" bind:group={activeTheme} />
+            <span>浅色模式</span>
+          </label>
+          <label class:active={activeTheme === 'dark'}>
+            <input type="radio" name="advanced-theme-tab" value="dark" bind:group={activeTheme} />
+            <span>深色模式</span>
+          </label>
+        </div>
 
-          <ThemeBackgroundCard
-            theme="dark"
-            background={form.backgrounds.dark}
-            valid={darkBackgroundValid}
-            {uploadHost}
-            on:change={(event) => updateThemeBackground('dark', event.detail)}
-            on:upload={openUpload}
-          />
+        <div class="theme-background-grid">
+          {#key activeTheme}
+            <ThemeBackgroundCard
+              theme={activeTheme}
+              background={activeBackground}
+              valid={activeBackgroundValid}
+              {uploadHost}
+              on:change={(event) => updateThemeBackground(activeTheme, event.detail)}
+              on:upload={openUpload}
+            />
+          {/key}
         </div>
       </div>
 
       <div class="settings-subsection">
         <h3>尺寸与密度</h3>
         <div class="settings-grid card-size-grid">
-          <label class="field field-number">
-            <span>卡片最小宽度 (px)</span>
-            <input bind:value={form.card_size.width} type="number" min="80" max="400" step="10" />
-            <small>数值越小，每行可排列的卡片越多。</small>
+          <label class="field field-number" for="settings-card-width">
+            <span>卡片最小宽度 <Tooltip text="控制一行能容纳的卡片数量，支持自适应换行" /></span>
+            <InputGroup
+              inputId="settings-card-width"
+              type="number"
+              min={80}
+              max={400}
+              step={10}
+              suffixUnit="px"
+              placeholder="默认 80"
+              bind:value={form.card_size.width}
+              ariaLabel="卡片最小宽度"
+              on:input={() => void syncForm()}
+            />
           </label>
-          <label class="field field-number" class:disabled={form.card_style !== 'info'}>
-            <span>详情卡片最小高度 (px)</span>
-            <input bind:value={form.card_size.height} type="number" min="0" max="300" step="10" disabled={form.card_style !== 'info'} />
-            <small>仅影响详情风格；设置为 0 时由内容决定高度。</small>
+          <label class="field field-number" class:disabled={form.card_style !== 'info'} for="settings-card-height">
+            <span>详情卡片最小高度</span>
+            <InputGroup
+              inputId="settings-card-height"
+              type="number"
+              min={0}
+              max={300}
+              step={10}
+              suffixUnit="px"
+              placeholder="0 为自适应"
+              disabled={form.card_style !== 'info'}
+              bind:value={form.card_size.height}
+              ariaLabel="详情卡片最小高度"
+              on:input={() => void syncForm()}
+            />
           </label>
-          <label class="field field-number" class:disabled={form.card_style !== 'icon'}>
-            <span>极简卡片图标大小 (px)</span>
-            <input bind:value={form.card_icon_size} type="number" min="40" max="100" step="5" disabled={form.card_style !== 'icon'} />
-            <small>控制极简风格中图标卡片的边长。</small>
+          <label class="field field-number" class:disabled={form.card_style !== 'icon'} for="settings-card-icon">
+            <span>极简卡片图标大小</span>
+            <InputGroup
+              inputId="settings-card-icon"
+              type="number"
+              min={40}
+              max={100}
+              step={5}
+              suffixUnit="px"
+              placeholder="默认 60"
+              disabled={form.card_style !== 'icon'}
+              bind:value={form.card_icon_size}
+              ariaLabel="极简卡片图标大小"
+              on:input={() => void syncForm()}
+            />
           </label>
         </div>
       </div>
@@ -118,7 +161,7 @@
         <h3>卡片表面</h3>
         <div class="settings-grid card-appearance-grid">
           <div class="field field-color">
-            <span>卡片表面颜色</span>
+            <span>卡片表面颜色 <Tooltip text="书签卡片的背景底色，配合不透明度实现毛玻璃质感。" /></span>
             <ColorAlphaInput
               bind:value={form.card_background_color}
               bind:alpha={form.card_background_opacity}
@@ -128,26 +171,30 @@
               swatchTitle="选择卡片表面颜色"
               alphaText="卡片表面透明度"
             />
-            <small>作为卡片的基础色；内置方案会提供一组匹配值。</small>
           </div>
 
-          <label class="field field-range">
-            <span>卡片不透明度 <em>{form.card_background_opacity.toFixed(2)}</em></span>
-            <input bind:value={form.card_background_opacity} type="range" min="0" max="1" step="0.05" />
-            <small>数值越低越通透，背景内容会更明显。</small>
-          </label>
+          <div class="field field-range">
+            <Slider
+              label="卡片不透明度"
+              format="ratio-percent"
+              min={0}
+              max={1}
+              step={0.05}
+              bind:value={form.card_background_opacity}
+              on:input={() => void syncForm()}
+            />
+          </div>
 
           <div class="field field-color">
             <span>卡片文字颜色</span>
             <ColorAlphaInput
               bind:value={form.card_text_color}
               on:change={() => void syncForm()}
-              placeholder="留空则跟随主题"
+              placeholder="留空跟随系统高对比色"
               inputLabel="卡片文字颜色值"
               swatchTitle="选择卡片文字颜色"
               alphaText="卡片文字透明度"
             />
-            <small>留空时分别使用适合浅色和深色模式的高对比文字。</small>
           </div>
         </div>
       </div>
@@ -171,7 +218,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    border: 1px solid var(--sp-toggle-border);
+    border: 1px solid var(--sp-subsection-border);
     border-radius: 12px;
     padding: 10px 13px;
     background: var(--sp-toggle-bg);
@@ -272,6 +319,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
+  }
+
+  .theme-tab-switcher {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 12px;
   }
 
   @media (max-width: 960px) {

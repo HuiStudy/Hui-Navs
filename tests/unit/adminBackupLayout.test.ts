@@ -6,7 +6,7 @@ describe('admin backup layout', () => {
     const source = readFileSync('src/components/BackupPanel.svelte', 'utf8')
 
     expect(source).toContain('class="backup-operations"')
-    expect(source.match(/class="backup-operation"/g)).toHaveLength(2)
+    expect(source.match(/class="backup-operation(?: [^"]*)?"/g)).toHaveLength(2)
     expect(source).toContain('id="export-backup-title"')
     expect(source).toContain('id="import-backup-title"')
     expect(source).toContain('class="import-actions"')

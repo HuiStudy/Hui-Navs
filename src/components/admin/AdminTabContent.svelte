@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { ChangePasswordReq } from '../../../shared/types'
-  import type { AdminBookmarkSummary, AdminCategorySummary, SettingsFormValue } from '../../lib/appData'
-  import type { AdminTab, CategorySortHandler } from '../../lib/adminTypes'
-  import type { ImportSource } from '../../lib/importData'
-  import type { SortHandler } from '../../lib/sortableList'
   import BackupPanel from '../BackupPanel.svelte'
   import BookmarkListPanel from './BookmarkListPanel.svelte'
   import CategoryListPanel from './CategoryListPanel.svelte'
   import AnalyticsPanel from './AnalyticsPanel.svelte'
+  import type { BackupSelection } from '../../lib/appBackup'
+  import type { AdminBookmarkSummary, AdminCategorySummary, SettingsFormValue } from '../../lib/appData'
+  import type { AdminTab, CategorySortHandler } from '../../lib/adminTypes'
+  import type { ImportSource } from '../../lib/importData'
+  import type { SortHandler } from '../../lib/sortableList'
 
   type AdminCategory = AdminCategorySummary
   type AdminBookmark = AdminBookmarkSummary
@@ -45,7 +46,7 @@
   export let onChangePassword: ((payload: ChangePasswordReq) => AsyncVoid) | undefined = undefined
   export let onSortCategories: CategorySortHandler | undefined = undefined
   export let onSortBookmarks: SortHandler | undefined = undefined
-  export let onExportData: (() => AsyncVoid) | undefined = undefined
+  export let onExportData: ((selection: BackupSelection) => AsyncVoid) | undefined = undefined
   export let onImportData: ((file: File, source: ImportSource, mode: 'replace' | 'merge') => AsyncVoid) | undefined = undefined
 </script>
 
@@ -108,6 +109,8 @@
       {importing}
       {backupError}
       {backupMessage}
+      {categories}
+      {bookmarks}
       bind:importSource
       onExportData={onExportData}
       onImportData={onImportData}

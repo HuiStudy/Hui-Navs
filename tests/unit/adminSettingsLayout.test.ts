@@ -11,12 +11,12 @@ describe('admin settings layout', () => {
     expect(settingsRule).not.toContain('margin: 0 auto')
   })
 
-  it('associates the public mode label with its checkbox', () => {
+  it('associates the public mode switch with its label', () => {
     const source = readFileSync('src/components/settings/BasicSettingsSection.svelte', 'utf8')
 
-    expect(source).toContain('<label class="toggle-copy" for="settings-public-mode">')
-    expect(source).toContain('id="settings-public-mode"')
-    expect(source).toContain('on:change={() => void syncForm()}')
+    expect(source).toContain('公开模式')
+    expect(source).toContain('checked={form.public_mode}')
+    expect(source).toContain("on:change={(event) => { form.public_mode = event.detail; void syncForm() }}")
   })
 
   it('provides navigation position and persistent-left controls', () => {
@@ -25,8 +25,8 @@ describe('admin settings layout', () => {
 
     expect(panel).toContain('<NavigationSettingsSection bind:form {saving} />')
     expect(source).toContain('bind:group={form.navigation.position}')
-    expect(source).toContain('bind:checked={form.navigation.always_expanded}')
-    expect(source).toContain("disabled={saving || form.navigation.position !== 'left'}")
+    expect(source).toContain('checked={form.navigation.always_expanded}')
+    expect(source).toContain('disabled={saving || !isLeft}')
   })
 
   it('groups settings sections behind a secondary settings menu', () => {
@@ -69,15 +69,15 @@ describe('admin settings layout', () => {
 
     expect(layout).toContain('bind:value={form.content_layout.max_width}')
     expect(card).not.toContain('form.content_layout')
-    expect(hero).toContain('bind:checked={form.search_box_show}')
-    expect(hero).toContain('bind:checked={form.search_engine_selector_show}')
+    expect(hero).toContain('checked={form.search_box_show}')
+    expect(hero).toContain('checked={form.search_engine_selector_show}')
     expect(search).not.toContain('form.search_box_show')
     expect(basic).toContain('bind:group={form.theme}')
     expect(basic).toContain('bind:value={form.site_title_color}')
     expect(basic).toContain('bind:value={form.site_title_font_size}')
     expect(basic).toContain('bind:value={form.image_host_url}')
     expect(basic).toContain('<h3>外部资源</h3>')
-    expect(basic).toContain('背景图片、分类图标和书签自定义图标')
+    expect(basic).toContain('用于背景图、分类与书签图标的上传接口')
     expect(advanced).not.toContain('bind:value={form.image_host_url}')
     expect(advanced).not.toContain('bind:value={form.site_title_color}')
     expect(advanced).not.toContain('bind:value={form.site_title_font_size}')
@@ -109,7 +109,7 @@ describe('admin settings layout', () => {
     expect(searchBranch).toContain('<SearchEngineSettingsSection')
     expect(searchBranch).not.toContain('<HeroSettingsSection')
     expect(hero).toContain('bind:value={form.most_visited_count}')
-    expect(hero).toContain('bind:checked={form.site_title_show}')
+    expect(hero).toContain('checked={form.site_title_show}')
     expect(hero).toContain('.field-range {\n    grid-column: 1 / -1;')
     expect(basic).not.toContain('form.custom_css')
     expect(basic).not.toContain('form.custom_js')
@@ -192,8 +192,8 @@ describe('admin settings layout', () => {
     expect(appearanceBranch.indexOf('<CardSettingsSection')).toBeLessThan(appearanceBranch.indexOf('<AdvancedSettingsSection'))
     expect(backgroundCard.indexOf('<span>背景值</span>')).toBeLessThan(backgroundCard.indexOf('startLabel="起始颜色"'))
     expect(backgroundCard.indexOf('startLabel="起始颜色"')).toBeLessThan(backgroundCard.indexOf('endLabel="结束颜色"'))
-    expect(backgroundCard.indexOf('endLabel="结束颜色"')).toBeLessThan(backgroundCard.indexOf('<span>遮罩颜色</span>'))
-    expect(backgroundCard.indexOf('<span>遮罩颜色</span>')).toBeLessThan(backgroundCard.indexOf('<div class="background-range-grid">'))
+    expect(backgroundCard.indexOf('endLabel="结束颜色"')).toBeLessThan(backgroundCard.indexOf('<div class="background-range-grid">'))
+    expect(backgroundCard.indexOf('<div class="background-range-grid">')).toBeLessThan(backgroundCard.indexOf('遮罩颜色'))
   })
 
   it('collapses built-in presets, removes manual gradient values, and binds card controls to style', () => {
@@ -259,6 +259,6 @@ describe('admin settings layout', () => {
     expect(search).toContain('engine.icon = icon')
     expect(search).toContain('Favicon.im')
     expect(search).toContain('搜索引擎图标预览')
-    expect(search).toContain('.favicon-button {\n    grid-column: 3;')
+    expect(search).toContain('class="favicon-suffix-button"')
   })
 })

@@ -16,6 +16,7 @@
   import AdminSidebar from '../components/AdminSidebar.svelte'
   import AdminPageHeader from '../components/admin/AdminPageHeader.svelte'
   import AdminTabContent from '../components/admin/AdminTabContent.svelte'
+  import type { BackupSelection } from '../lib/appBackup'
   import type { ImportSource } from '../lib/importData'
   import type { SettingsFormValue } from '../lib/appData'
   import type { AdminTab, CategorySortHandler } from '../lib/adminTypes'
@@ -99,7 +100,7 @@
   export let importing = false
   export let backupError = ''
   export let backupMessage = ''
-  export let onExportData: (() => AsyncVoid) | undefined = undefined
+  export let onExportData: ((selection: BackupSelection) => AsyncVoid) | undefined = undefined
   export let onImportData: ((file: File, source: ImportSource, mode: 'replace' | 'merge') => AsyncVoid) | undefined = undefined
 
   let importSource: ImportSource = 'cf-navs'

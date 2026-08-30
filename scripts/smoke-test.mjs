@@ -128,8 +128,14 @@ async function main() {
     check('更新后标题生效', r.json?.data?.title === '常用工具(改)', r.json?.data?.title)
   }
   {
-    const r = await call('/api/categories/sort', { method: 'POST', token, body: { ids: [catB.id, catA.id] } })
-    check('分类排序 code=0', r.json?.code === 0)
+    // 顶层分类排序：PR #7 起 /api/categories/sort 按 CategorySortReq 要求 parent_id，
+    // 顶层传 null（`worker/routes/categories.ts` sort 路由）。
+    const r = await call('/api/categories/sort', {
+      method: 'POST',
+      token,
+      body: { parent_id: null, ids: [catB.id, catA.id] },
+    })
+    check('分类排序 code=0', r.json?.code === 0, JSON.stringify(r.json))
     const list = (await call('/api/categories', { token })).json?.data || []
     check('排序后 B 在前', list[0]?.id === catB.id, `first=${list[0]?.id} expect=${catB.id}`)
   }
@@ -314,7 +320,19 @@ async function main() {
     const bms = (await call('/api/bookmarks', { token })).json?.data || []
     check('导入后分类被覆盖为 2 个', cats.length === 2, `len=${cats.length}`)
     check('导入后书签被覆盖为 2 个', bms.length === 2)
-    check('导入保留原始 id', cats.some((c) => c.id === 101) && bms.some((b) => b.id === 201))
+    // 导入按 remapImportRecords 从 1 起重编号（root 先于 child），并把书签的
+    // category_id 重绑到新分类 id；原始 id 不保留，这是既有设计而非缺陷。
+    const sortedCatIds = cats.map((c) => c.id).sort((a, b) => a - b)
+    check('导入分类按 remap 从 1 起重编号', sortedCatIds.join(',') === '1,2', `ids=${sortedCatIds.join(',')}`)
+    check('导入未保留原始分类 id', !cats.some((c) => c.id === 101 || c.id === 102), `ids=${sortedCatIds.join(',')}`)
+    const catTitleById = new Map(cats.map((c) => [c.id, c.title]))
+    const bmA = bms.find((b) => b.title === '导入书签1')
+    const bmB = bms.find((b) => b.title === '导入书签2')
+    check(
+      '书签 category_id 重绑到正确分类',
+      catTitleById.get(bmA?.category_id) === '导入分类A' && catTitleById.get(bmB?.category_id) === '导入分类B',
+      `bm1→${catTitleById.get(bmA?.category_id)} bm2→${catTitleById.get(bmB?.category_id)}`,
+    )
     const s = (await call('/api/settings', { token })).json?.data
     check('导入应用了 settings.site_title', s?.site_title === '导入后的标题', s?.site_title)
   }

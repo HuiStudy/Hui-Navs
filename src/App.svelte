@@ -14,6 +14,7 @@
   import Home from './views/Home.svelte'
   import Install from './views/Install.svelte'
   import { api, getErrorMessage, isUnauthorizedError } from './lib/api'
+  import type { BackupSelection as BackupSelectionInput } from './lib/appBackup'
   import { clearCachedAdminData } from './lib/adminDataCache'
   import { clearCachedPublicData } from './lib/publicDataCache'
   import { toastStore } from './lib/toast'
@@ -891,10 +892,10 @@
     await refreshAdminDataAfterMutation()
   }
 
-  function handleExportData(): void {
+  function handleExportData(selection: BackupSelectionInput): void {
     exportDataToFile(importExportState, adminData, (next) => {
       importExportState = next
-    })
+    }, selection)
   }
 
   async function handleImportData(file: File, source: ImportSource, mode: 'replace' | 'merge'): Promise<void> {

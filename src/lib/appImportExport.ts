@@ -1,6 +1,6 @@
 ﻿import type { AdminData } from '../../shared/types'
 import { api, getErrorMessage } from './api'
-import { createBackupExportArtifact, createImportSuccessMessage } from './appBackup'
+import { createBackupExportArtifact, createImportSuccessMessage, type BackupSelection } from './appBackup'
 import { createImportOverwriteConfirmation, type ConfirmDialogInput } from './appConfirmDialog'
 import type { ImportSource } from './importData'
 import { toastStore } from './toast'
@@ -34,13 +34,19 @@ export function exportDataToFile(
   state: ImportExportState,
   adminData: AdminData,
   onStateChange?: (next: ImportExportState) => void,
+  selection?: BackupSelection,
 ): void {
   state.backupError = ''
   state.backupMessage = ''
   notifyState(state, onStateChange)
 
   try {
-    const artifact = createBackupExportArtifact(adminData)
+    const artifact = createBackupExportArtifact(adminData, Date.now(), selection)
+    if (selection && artifact.payload.categories.length === 0 && artifact.payload.bookmarks.length === 0) {
+      state.backupError = '请至少选择一个分类后再导出。'
+      notifyState(state, onStateChange)
+      return
+    }
     const blob = new Blob([artifact.json], { type: 'application/json' })
     const href = URL.createObjectURL(blob)
     const anchor = document.createElement('a')

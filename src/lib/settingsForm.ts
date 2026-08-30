@@ -80,7 +80,7 @@ export const emptySettingsForm: SettingsFormModel = {
   search_box_show: true,
   search_engine_selector_show: true,
   content_layout: { max_width: 1200, max_width_unit: 'px', margin_x: 0, margin_top: 0, margin_bottom: 0 },
-  navigation: { position: 'left', always_expanded: false },
+  navigation: { position: 'left', always_expanded: false, top_layout: 'scroll' },
   footer_html: '',
   most_visited_count: 8,
   site_title_show: true,
@@ -233,6 +233,7 @@ export function createSettingsFormState(
     navigation: {
       position: navigation?.position === 'top' ? 'top' : 'left',
       always_expanded: navigation?.always_expanded ?? false,
+      top_layout: navigation?.top_layout === 'wrap' ? 'wrap' : 'scroll',
     },
     footer_html: source?.footer_html ?? '',
     most_visited_count: typeof source?.most_visited_count === 'number' ? source.most_visited_count : 8,
@@ -316,6 +317,7 @@ export function normalizeSettingsForm(source: SettingsFormModel): SettingsFormMo
     navigation: {
       position: source.navigation.position === 'top' ? 'top' : 'left',
       always_expanded: Boolean(source.navigation.always_expanded),
+      top_layout: source.navigation.top_layout === 'wrap' ? 'wrap' : 'scroll',
     },
     footer_html: source.footer_html.trim(),
     most_visited_count: clampNumber(source.most_visited_count, 0, 20),

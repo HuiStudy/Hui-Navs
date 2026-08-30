@@ -1,6 +1,9 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import { cloneSettingsForm, type SettingsFormModel } from '../../lib/settingsForm'
+  import Switch from '../ui/Switch.svelte'
+  import Tooltip from '../ui/Tooltip.svelte'
+  import Slider from '../ui/Slider.svelte'
 
   export let form: SettingsFormModel
   export let saving = false
@@ -9,6 +12,11 @@
     await tick()
     form = cloneSettingsForm(form)
   }
+
+  function setField(key: 'site_title_show' | 'search_box_show' | 'search_engine_selector_show', value: boolean): void {
+    form[key] = value
+    void syncForm()
+  }
 </script>
 
 <fieldset id="settings-section-search-display" class="group group-wide" disabled={saving}>
@@ -16,54 +24,47 @@
   <p class="group-desc">控制首页标题、搜索入口和「经常访问」区域的显示方式。</p>
 
   <div class="form-grid search-display-grid">
-    <label class="field field-range">
-      <span>经常访问展示数量 <em>{form.most_visited_count === 0 ? '已禁用' : form.most_visited_count}</em></span>
-      <input
+    <div class="field field-range">
+      <Slider
+        label="经常访问展示数量"
+        format="count"
+        zeroLabel="0 (隐藏)"
+        countUnit="个"
+        min={0}
+        max={20}
+        step={1}
         bind:value={form.most_visited_count}
-        type="range"
-        min="0"
-        max="20"
-        step="1"
         on:input={() => void syncForm()}
       />
-      <small>设置首页顶部「经常访问」区域展示的书签上限。设为 0 可完全隐藏该区域。</small>
-    </label>
+    </div>
 
-    <label class="toggle-field field-toggle">
-      <div class="toggle-copy">
-        <span>显示站点标题</span>
-        <p>关闭后首页不再展示大标题字样。</p>
-      </div>
-      <input
-        bind:checked={form.site_title_show}
-        on:change={() => void syncForm()}
-        type="checkbox"
+    <div class="field-switch field-toggle">
+      <span class="switch-copy">显示站点标题</span>
+      <Switch
+        checked={form.site_title_show}
+        ariaLabel="显示站点标题"
+        on:change={(event) => setField('site_title_show', event.detail)}
       />
-    </label>
+    </div>
 
-    <label class="toggle-field field-toggle">
-      <div class="toggle-copy">
-        <span>显示搜索框</span>
-        <p>关闭后首页隐藏整个搜索区域，只显示标题、导航与书签内容。</p>
-      </div>
-      <input
-        bind:checked={form.search_box_show}
-        on:change={() => void syncForm()}
-        type="checkbox"
+    <div class="field-switch field-toggle">
+      <span class="switch-copy">显示搜索框</span>
+      <Switch
+        checked={form.search_box_show}
+        ariaLabel="显示搜索框"
+        on:change={(event) => setField('search_box_show', event.detail)}
       />
-    </label>
+    </div>
 
-    <label class="toggle-field field-toggle">
-      <div class="toggle-copy">
-        <span>显示引擎选择器</span>
-        <p>关闭后搜索框直接使用下方设置的默认搜索引擎。</p>
-      </div>
-      <input
-        bind:checked={form.search_engine_selector_show}
-        on:change={() => void syncForm()}
-        type="checkbox"
+    <div class="field-switch field-toggle" class:disabled={!form.search_box_show}>
+      <span class="switch-copy">显示引擎选择器 <Tooltip text="关闭后固定使用默认搜索引擎，不展示切换下拉框。" /></span>
+      <Switch
+        checked={form.search_engine_selector_show}
+        disabled={saving || !form.search_box_show}
+        ariaLabel="显示引擎选择器"
+        on:change={(event) => setField('search_engine_selector_show', event.detail)}
       />
-    </label>
+    </div>
   </div>
 </fieldset>
 
@@ -74,6 +75,30 @@
 
   .field-toggle {
     grid-column: span 4;
+  }
+
+  .field-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--sp-toggle-border);
+    border-radius: 12px;
+    padding: 13px 15px;
+    background: var(--sp-toggle-bg);
+  }
+
+  .field-switch.disabled {
+    opacity: 0.58;
+  }
+
+  .switch-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sp-label);
+    font-size: 14px;
+    font-weight: 600;
   }
 
   @media (max-width: 960px) {
