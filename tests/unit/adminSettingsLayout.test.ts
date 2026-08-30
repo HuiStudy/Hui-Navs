@@ -75,8 +75,8 @@ describe('admin settings layout', () => {
     const desktopCollapseEnd = panel.indexOf('@media (max-width: 960px)')
     const desktopCollapseRule = panel.slice(desktopCollapseStart, desktopCollapseEnd)
 
-    expect(panelRule).toContain('height: clamp(0px, calc(100dvh - 156px), 960px)')
-    expect(panelRule).toContain('min-height: min(560px, calc(100dvh - 156px))')
+    expect(panelRule).toContain('height: clamp(0px, calc(100dvh - 180px), 960px)')
+    expect(panelRule).toContain('min-height: min(560px, calc(100dvh - 180px))')
     expect(desktopCollapseRule).toContain('height: auto;')
     expect(desktopCollapseRule).toContain('min-height: 0;')
     expect(desktopCollapseRule).toContain('overflow: visible;')

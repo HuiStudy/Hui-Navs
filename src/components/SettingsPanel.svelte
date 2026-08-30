@@ -230,9 +230,9 @@
     grid-template-rows: auto minmax(0, 1fr);
     gap: 0;
     position: relative;
-    /* Fill the admin content track without growing indefinitely on tall screens. */
-    height: clamp(0px, calc(100dvh - 156px), 960px);
-    min-height: min(560px, calc(100dvh - 156px));
+    /* Fill the admin content track while reserving the wrapper's bottom margin. */
+    height: clamp(0px, calc(100dvh - 180px), 960px);
+    min-height: min(560px, calc(100dvh - 180px));
     box-sizing: border-box;
     border: 1px solid var(--sp-border);
     border-radius: 22px;
