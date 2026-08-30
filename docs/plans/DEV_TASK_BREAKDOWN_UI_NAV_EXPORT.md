@@ -284,6 +284,12 @@ graph TD
   - 首次运行 `home bookmark cards present` 与右键编辑失败，根因是**我的种子数据把书签全挂在二级分类**（一级直属书签为 0），首页因此无卡片；补入一级直属书签后两项转通过——属 fixture 缺陷，非产品回归。
 - 套件结束后按精确 profile 校验隔离 Chrome 进程数为 0。
 
+### 9.2ter 设置卡片高度与外层滚动回归修复（2026-08-30）
+
+- `src/components/SettingsPanel.svelte` 桌面高度统一为 `clamp(0px, calc(100dvh - 180px), 960px)`，最小高度统一按同一可用高度计算为 `min(560px, calc(100dvh - 180px))`。
+- `180px` 预留后台外层壳体与 `.settings-panel-wrap` 的 `24px` 底部间距；`.settings-section-content` 保持内部 `overflow-y:auto`，≤1320px 恢复自然高度和单列布局。
+- `tests/unit/adminSettingsLayout.test.ts` 同时校验设置卡片、内容滚动容器、外层滚动容器和 1320px 响应式覆盖；隔离 headless Chrome 已验证 `1440×1000`、`1321×1000`、`1440×768` 无外层溢出，1320px/移动端保持自然高度。
+
 ### 9.3 收尾
 - 两份需求文档补「实现提交」与「回归护栏」；本文标记各任务完成。
 - 遵循 `AGENTS.md`：默认 `develop`，不擅自 `git add/commit/push`、不部署、不写真实生产域名/凭据。
@@ -335,6 +341,7 @@ graph TD
 | T8-search 搜索分区 | 2 | 已完成 | `src/components/settings/SearchEngineSettingsSection.svelte` | `svelte-check` 0 error；全量 649 passed；真实 CDP 搜索分区渲染无页面异常 | 默认引擎删说明；名称/图标 placeholder；Favicon.im 改 InputGroup 内嵌图标按钮；删除改垃圾桶图标（保留单条禁用）；新增文案「+ 添加搜索引擎」 |
 | T-verify 集成验证 | 3 | 已完成 | `.claude/tmp/verify-*.mjs`、`run-smoke.mjs`、`run-regression.mjs`（本地临时，不入库）、需求文档证据 | `npm run type-check` 通过；`npx vitest run` 95 files/649 passed；`npm run build` 成功；`git diff --check` 通过；**`scripts/smoke-test.mjs` 75/75 全绿**；**`scripts/chrome-regression.mjs` 25/25 全绿**；CDP 桌面/移动断点、设置、导出、子菜单、左侧回归通过；Reviewer PASS | 第一轮断点问题已修复；仓库自带冒烟与回归套件已纳入固定验证；文档台账与需求状态已同步 |
 | 收尾（CHANGELOG/OVERVIEW） | 3 | 已完成 | `CHANGELOG.md`；相关需求/任务文档 | 变更记录已补充；`PROJECT_OVERVIEW.md` 既有维护待办未涉及，不修改 | 本轮无 git/部署/生产操作 |
+| 设置卡片高度与滚动边界 | 3 | 已完成 | `src/components/SettingsPanel.svelte`、`src/components/admin/AdminTabContent.svelte`、`tests/unit/adminSettingsLayout.test.ts` | `adminSettingsLayout.test.ts` 14 passed；`npm run type-check` 0 errors / 0 warnings；隔离 headless Chrome 验证宽屏无外层溢出、1320px/移动端自然高度；`git diff --check` 通过 | 桌面高度扣除外层预留与 wrapper 24px 间距；内容在 section 内滚动，≤1320px 不保留固定高度 |
 
 - **2026-08-30 补跑仓库自带冒烟与回归套件（验证遗漏修补）**
   - 发现遗漏：前几轮只跑了 `vitest` + `type-check` + `build` + 自写 CDP 场景脚本，**未运行仓库自带的 `scripts/smoke-test.mjs`（API 端到端冒烟）与 `scripts/chrome-regression.mjs`（真实浏览器回归套件）**，四份文档也未提及。已补跑并在 §9.1 / §9.2bis 固化为必跑项。

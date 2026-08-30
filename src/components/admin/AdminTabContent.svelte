@@ -136,6 +136,7 @@
   .settings-panel-wrap {
     min-width: 0;
     width: 100%;
+    /* SettingsPanel reserves this gap in its desktop viewport height. */
     margin: 0 0 24px;
   }
 

@@ -200,3 +200,10 @@
 - **本轮验证证据（2026-08-30）**：`npx svelte-check --tsconfig ./tsconfig.json` 0 errors；`npm run build` 成功；`npx vitest run` 95 files / 649 passed。隔离 headless Chrome + CDP 本地验证设置页 6 个分区、Switch/Tooltip/Slider 渲染、`position` 互斥置灰、FR-A10（关闭搜索框后引擎选择器 Disabled）、备份页和顶部导航；控制台错误、页面异常、失败请求均为 0。
 - **仓库自带套件补跑（2026-08-30）**：`scripts/chrome-regression.mjs`（隔离临时 Chrome）**25 / 25 全部通过**，其中 `settings tab rendered`、`backup tab rendered`、`admin bookmark search works`、`bookmark context edit modal works` 直接覆盖本文改造的设置页与后台面板，consoleErrors/pageExceptions/failedRequests 全 0；`scripts/smoke-test.mjs` **75 / 75 全部通过**（含 `PUT /api/settings` 读写与非法值拒绝）。详见 `DEV_TASK_BREAKDOWN_UI_NAV_EXPORT.md` §9.2bis。
 - 遵循仓库 `AGENTS.md`：默认在 `develop` 开发，不擅自 `git add/commit/push`、不部署、不写入真实生产域名或凭据。
+
+### 9.5 设置卡片高度与滚动边界（实现记录）
+
+- 桌面宽度（>1320px）的 `.settings-panel` 使用 `height: clamp(0px, calc(100dvh - 180px), 960px)` 与 `min-height: min(560px, calc(100dvh - 180px))`；`180px` 为后台外层可用高度预留，包含设置包装器底部 `24px` 间距，不代表单一 margin。
+- `AdminTabContent.svelte` 的 `.admin-content` 保持 `height: 100%` 与 `overflow: auto`；设置表单内容在 `.settings-section-content` 的 `overflow-y: auto` 区域内滚动，避免卡片撑出后台内容轨道。
+- ≤1320px 时移除设置卡片固定高度，工作区改为单列自然高度并将内部溢出设为 `visible`，避免窄屏出现固定高度与页面滚动竞争。
+- 以上契约由 `tests/unit/adminSettingsLayout.test.ts` 覆盖；宽屏、断点和窄屏实际行为通过隔离浏览器验证。

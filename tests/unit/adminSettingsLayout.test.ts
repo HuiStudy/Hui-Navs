@@ -70,13 +70,22 @@ describe('admin settings layout', () => {
 
   it('bounds the desktop settings card height to the available shell', () => {
     const panel = readFileSync('src/components/SettingsPanel.svelte', 'utf8')
+    const adminContent = readFileSync('src/components/admin/AdminTabContent.svelte', 'utf8')
     const panelRule = panel.match(/\.settings-panel\s*\{([^}]+)\}/)?.[1] ?? ''
+    const sectionContentRule = panel.match(/\.settings-section-content\s*\{([^}]+)\}/)?.[1] ?? ''
+    const adminContentRule = adminContent.match(/\.admin-content\s*\{([^}]+)\}/)?.[1] ?? ''
     const desktopCollapseStart = panel.indexOf('@media (max-width: 1320px)')
     const desktopCollapseEnd = panel.indexOf('@media (max-width: 960px)')
     const desktopCollapseRule = panel.slice(desktopCollapseStart, desktopCollapseEnd)
 
     expect(panelRule).toContain('height: clamp(0px, calc(100dvh - 180px), 960px)')
     expect(panelRule).toContain('min-height: min(560px, calc(100dvh - 180px))')
+    expect(sectionContentRule).toContain('height: 100%')
+    expect(sectionContentRule).toContain('overflow-y: auto')
+    expect(adminContentRule).toContain('height: 100%')
+    expect(adminContentRule).toContain('overflow: auto')
+    expect(panelRule).not.toContain('100dvh - 156px')
+    expect(adminContent).toContain('margin: 0 0 24px')
     expect(desktopCollapseRule).toContain('height: auto;')
     expect(desktopCollapseRule).toContain('min-height: 0;')
     expect(desktopCollapseRule).toContain('overflow: visible;')
