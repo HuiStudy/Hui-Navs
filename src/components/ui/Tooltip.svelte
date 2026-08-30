@@ -1,9 +1,8 @@
 <script lang="ts">
   // 统一的 (?) Tooltip。承载「系统逻辑/权限」类说明。
   // 桌面：hover + 键盘聚焦触发；移动端触屏：点按切换（Tap to toggle，OQ-C 方案 1）。
-  // (?) 为 button，用 aria-expanded 表达展开态；全局互斥（同一时刻仅一个展开）；
-  // 点浮层外区域关闭。
-  import { onDestroy } from 'svelte'
+  // 气泡挂载到 document.body 并以视口定位，避免被设置页滚动容器裁切。
+  import { onDestroy, onMount, tick } from 'svelte'
   import { nextTooltipId, openTooltipId } from '../../lib/tooltipStore'
 
   export let text = ''
@@ -12,51 +11,100 @@
   const id = nextTooltipId()
   const bubbleId = `${id}-bubble`
   let anchorEl: HTMLElement | null = null
+  let triggerEl: HTMLButtonElement | null = null
+  let bubbleEl: HTMLElement | null = null
+  let bubbleStyle = 'visibility: hidden;'
   let open = false
-  // hover 与「点按锁定」分离：点按打开后即使移开指针也保持，直到再次点按/点外部/Esc
   let pinned = false
   let hovering = false
+  let positionFrame: number | null = null
+
+  function mountToBody(node: HTMLElement) {
+    document.body.appendChild(node)
+    return { destroy: () => node.remove() }
+  }
+
+  async function updateBubblePosition(): Promise<void> {
+    await tick()
+    if (!open || !triggerEl || !bubbleEl) return
+
+    const triggerRect = triggerEl.getBoundingClientRect()
+    const bubbleRect = bubbleEl.getBoundingClientRect()
+    const viewportMargin = 8
+    const gap = 6
+    const maxLeft = Math.max(viewportMargin, window.innerWidth - viewportMargin - bubbleRect.width)
+    const centeredLeft = triggerRect.left + ((triggerRect.width - bubbleRect.width) / 2)
+    const left = Math.min(Math.max(centeredLeft, viewportMargin), maxLeft)
+    const maxTop = Math.max(viewportMargin, window.innerHeight - viewportMargin - bubbleRect.height)
+    const below = triggerRect.bottom + gap
+    const above = triggerRect.top - bubbleRect.height - gap
+    const top = below <= maxTop || above < viewportMargin ? Math.min(below, maxTop) : above
+
+    bubbleStyle = `visibility: visible; left: ${Math.round(left)}px; top: ${Math.round(Math.max(viewportMargin, top))}px;`
+  }
+
+  function schedulePosition(): void {
+    if (!open || positionFrame !== null) return
+    positionFrame = window.requestAnimationFrame(() => {
+      positionFrame = null
+      void updateBubblePosition()
+    })
+  }
+
+  function refreshOpenState(): void {
+    const nextOpen = pinned || hovering
+    if (nextOpen && !open) bubbleStyle = 'visibility: hidden;'
+    open = nextOpen
+    if (open) schedulePosition()
+  }
 
   const unsub = openTooltipId.subscribe((current) => {
-    // 其它 tooltip 被打开时，收起自己的 pinned 态
-    if (current !== id && pinned) {
-      pinned = false
-    }
-    open = pinned || hovering
+    if (current !== id && pinned) pinned = false
+    refreshOpenState()
   })
-  onDestroy(unsub)
 
-  function show() {
-    hovering = true
-    open = true
-  }
-  function hide() {
-    hovering = false
-    open = pinned
-  }
-  function togglePinned() {
-    pinned = !pinned
-    if (pinned) {
-      openTooltipId.set(id)
-    } else if (!hovering) {
-      openTooltipId.set(null)
+  onMount(() => {
+    const handleViewportChange = () => schedulePosition()
+    window.addEventListener('resize', handleViewportChange)
+    window.addEventListener('scroll', handleViewportChange, true)
+    return () => {
+      window.removeEventListener('resize', handleViewportChange)
+      window.removeEventListener('scroll', handleViewportChange, true)
     }
-    open = pinned || hovering
+  })
+
+  onDestroy(() => {
+    unsub()
+    if (positionFrame !== null) window.cancelAnimationFrame(positionFrame)
+  })
+
+  function show(): void {
+    hovering = true
+    refreshOpenState()
   }
-  function handleKeydown(event: KeyboardEvent) {
+  function hide(): void {
+    hovering = false
+    refreshOpenState()
+  }
+  function togglePinned(): void {
+    pinned = !pinned
+    openTooltipId.set(pinned ? id : null)
+    refreshOpenState()
+  }
+  function handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape' && (pinned || open)) {
       pinned = false
       hovering = false
-      open = false
       openTooltipId.set(null)
+      refreshOpenState()
     }
   }
-  function handleWindowPointerDown(event: PointerEvent) {
+  function handleWindowPointerDown(event: PointerEvent): void {
     if (!pinned) return
     if (anchorEl && event.target instanceof Node && anchorEl.contains(event.target)) return
     pinned = false
-    open = hovering
     openTooltipId.set(null)
+    refreshOpenState()
   }
 </script>
 
@@ -70,6 +118,7 @@
   role="presentation"
 >
   <button
+    bind:this={triggerEl}
     type="button"
     class="ui-tooltip-trigger"
     aria-label={label}
@@ -80,7 +129,14 @@
     on:blur={hide}
   >?</button>
   {#if open && text}
-    <span id={bubbleId} class="ui-tooltip-bubble" role="tooltip">{text}</span>
+    <span
+      use:mountToBody
+      bind:this={bubbleEl}
+      id={bubbleId}
+      class="ui-tooltip-bubble"
+      role="tooltip"
+      style={bubbleStyle}
+    >{text}</span>
   {/if}
 </span>
 
@@ -116,17 +172,14 @@
   }
 
   .ui-tooltip-bubble {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 40;
+    position: fixed;
+    z-index: 1000;
     width: max-content;
-    max-width: min(260px, 78vw);
+    max-width: min(260px, calc(100vw - 16px));
     box-sizing: border-box;
     padding: 8px 10px;
     border-radius: 8px;
-    background: var(--sp-strong, #1e293b);
+    background: #1e293b;
     color: #ffffff;
     font-size: 12px;
     font-weight: 400;
@@ -144,11 +197,11 @@
   @keyframes ui-tooltip-in {
     from {
       opacity: 0;
-      transform: translateX(-50%) translateY(-2px);
+      transform: translateY(-2px);
     }
     to {
       opacity: 1;
-      transform: translateX(-50%) translateY(0);
+      transform: translateY(0);
     }
   }
 </style>

@@ -51,6 +51,14 @@ describe('Tooltip component', () => {
     expect(tooltipSource).toContain('id={bubbleId}')
     expect(tooltipSource).toContain('role="tooltip"')
   })
+
+  it('portals the bubble to the viewport so scrolling containers cannot clip it', () => {
+    expect(tooltipSource).toContain('document.body.appendChild(node)')
+    expect(tooltipSource).toContain('use:mountToBody')
+    expect(tooltipSource).toContain('position: fixed')
+    expect(tooltipSource).toContain('getBoundingClientRect()')
+    expect(tooltipSource).toContain("window.addEventListener('scroll', handleViewportChange, true)")
+  })
 })
 
 describe('InputGroup component', () => {

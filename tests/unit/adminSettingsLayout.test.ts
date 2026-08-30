@@ -29,7 +29,7 @@ describe('admin settings layout', () => {
     expect(source).toContain('disabled={saving || !isLeft}')
   })
 
-  it('groups settings sections behind a secondary settings menu', () => {
+  it('places the secondary settings menu above the workspace', () => {
     const panel = readFileSync('src/components/SettingsPanel.svelte', 'utf8')
 
     const sectionOrder = [
@@ -53,8 +53,18 @@ describe('admin settings layout', () => {
     expect(labelPositions).toEqual([...labelPositions].sort((a, b) => a - b))
     expect(panel).toContain("{ id: 'appearance', label: '外观与卡片'")
     expect(panel).toContain('class="settings-submenu"')
-    expect(panel).toContain('grid-column: span 1')
-    expect(panel).toContain('grid-column: span 11')
+
+    const formRule = panel.match(/\.settings-form\s*\{([^}]+)\}/)?.[1] ?? ''
+    const submenuRule = panel.match(/\.settings-submenu\s*\{([^}]+)\}/)?.[1] ?? ''
+    const workspaceRule = panel.match(/\.settings-workspace\s*\{([^}]+)\}/)?.[1] ?? ''
+    expect(formRule).toContain('grid-template-columns: minmax(0, 1fr)')
+    expect(formRule).toContain('grid-template-rows: auto minmax(0, 1fr)')
+    expect(submenuRule).toContain('grid-column: 1 / -1')
+    expect(submenuRule).toContain('grid-template-columns: repeat(6, minmax(0, 1fr))')
+    expect(submenuRule).toContain('position: static')
+    expect(workspaceRule).toContain('grid-column: 1 / -1')
+    expect(panel).not.toContain('grid-column: span 1')
+    expect(panel).not.toContain('grid-column: span 11')
     expect(panel).not.toContain('group::before')
   })
 
