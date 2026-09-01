@@ -42,6 +42,12 @@
     form = cloneSettingsForm(form)
   }
 
+  function handleSelectChange(e: Event) {
+    const target = e.target as HTMLSelectElement
+    form.search_engine.current = target.value
+    syncForm() // 保持与其他输入一致的克隆逻辑
+  }
+
   function canPreviewIcon(icon: string): boolean {
     return /^(https?:\/\/|data:image\/)/i.test(icon.trim())
   }
@@ -60,7 +66,7 @@
   <div class="settings-grid search-controls-grid">
     <label class="field field-select">
       <span>默认搜索引擎</span>
-      <select class="native-select" bind:value={form.search_engine.current} disabled={form.search_engine.engines.length === 0}>
+      <select class="native-select" value={form.search_engine.current} on:change={handleSelectChange} disabled={form.search_engine.engines.length === 0}>
         {#if form.search_engine.engines.length === 0}
           <option value="">无可用引擎</option>
         {:else}
