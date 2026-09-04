@@ -407,11 +407,11 @@
     bind:query={searchQuery}
   />
 
-  {#if !hasSearchQuery}
-    <HitokotoDisplay />
-  {/if}
-
-  {#if bookmarksVisible}
+  {#if !bookmarksVisible}
+    {#if !hasSearchQuery}
+      <HitokotoDisplay />
+    {/if}
+  {:else}
     <div transition:fade={{ duration: 280 }}>
       <Sidebar
         items={navigationSections}
