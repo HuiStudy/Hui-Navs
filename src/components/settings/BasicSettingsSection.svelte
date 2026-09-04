@@ -5,6 +5,7 @@
     themeOptions,
     type SettingsFormModel,
   } from '../../lib/settingsForm'
+  import type { DefaultHomeView } from '../../../shared/types'
   import ColorAlphaInput from '../ColorAlphaInput.svelte'
   import Switch from '../ui/Switch.svelte'
   import Tooltip from '../ui/Tooltip.svelte'
@@ -12,6 +13,11 @@
 
   export let form: SettingsFormModel
   export let saving = false
+
+  const defaultHomeViewOptions: Array<{ value: DefaultHomeView; label: string }> = [
+    { value: 'time', label: '时间' },
+    { value: 'bookmarks', label: '书签' },
+  ]
 
   async function syncForm(): Promise<void> {
     await tick()
@@ -95,6 +101,23 @@
       </div>
     </div>
 
+    <div class="field field-default-home-view">
+      <span class="field-label">默认展示 <Tooltip text="设置页面刷新或新访客打开时的默认显示画面（时间画面或书签画面），访客仍可在首页手动切换。" /></span>
+      <div class="segmented-control default-home-view-control" role="radiogroup" aria-label="默认展示">
+        {#each defaultHomeViewOptions as option (option.value)}
+          <label class:active={form.default_home_view === option.value}>
+            <input
+              type="radio"
+              bind:group={form.default_home_view}
+              value={option.value}
+              on:change={() => void syncForm()}
+            />
+            <span>{option.label}</span>
+          </label>
+        {/each}
+      </div>
+    </div>
+
   </div>
 
   <div class="settings-subsection external-resource-section">
@@ -122,7 +145,8 @@
   }
 
   .field-toggle,
-  .field-theme {
+  .field-theme,
+  .field-default-home-view {
     grid-column: span 6;
   }
 
@@ -154,6 +178,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .default-home-view-control {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .external-resource-section {
     border-top: 1px solid var(--sp-subsection-border);
     padding-top: 18px;
@@ -168,7 +196,8 @@
     .field-title-color,
     .field-title-size,
     .field-toggle,
-    .field-theme {
+    .field-theme,
+    .field-default-home-view {
       grid-column: 1 / -1;
     }
   }
@@ -178,7 +207,8 @@
     .field-title-color,
     .field-title-size,
     .field-toggle,
-    .field-theme {
+    .field-theme,
+    .field-default-home-view {
       grid-column: 1 / -1;
     }
   }
