@@ -307,7 +307,7 @@
 
   .hitokoto-actions {
     position: absolute;
-    right: -clamp(0.25rem, 0.6vw, 0.5rem);
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
@@ -372,6 +372,7 @@
 
   .hitokoto-from {
     padding-bottom: clamp(0.6rem, 1.5vh, 1rem);
+    padding-top: clamp(0.3rem, 0.7vh, 0.5rem);
   }
 
   .hitokoto-author {
