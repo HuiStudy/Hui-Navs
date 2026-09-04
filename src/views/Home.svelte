@@ -1,3 +1,9 @@
+<script context="module" lang="ts">
+  // 模块级缓存：组件卸载后仍保留（导航到后台再返回时恢复用户的手动切换状态）。
+  // 浏览器刷新时模块重新加载、缓存重置为 null，此时走后台默认设置。
+  let cachedBookmarksVisible: boolean | null = null
+</script>
+
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte'
   import Sidebar from '../components/Sidebar.svelte'
@@ -81,6 +87,13 @@
   let viewFading = false
   let defaultViewApplied = false
 
+  // 组件初始化时：若有缓存（从后台返回的 SPA 导航），恢复用户的手动切换状态；
+  // 若无缓存（首次访问或浏览器刷新），走后台默认设置。
+  if (cachedBookmarksVisible !== null) {
+    bookmarksVisible = cachedBookmarksVisible
+    defaultViewApplied = true
+  }
+
   // 后台 default_home_view 首次加载后，按其值初始化 bookmarksVisible（仅一次）
   // 之后用户的手动切换不受响应式变化影响；刷新页面会重新按后台设置初始化
   // 注意：响应式必须直接读取 settings，否则当 default_home_view === 'time'（默认值）
@@ -88,6 +101,7 @@
   $: if (settings && !defaultViewApplied) {
     defaultViewApplied = true
     bookmarksVisible = settings.default_home_view === 'bookmarks'
+    cachedBookmarksVisible = bookmarksVisible
   }
 
   $: sortedCategories = homeData.getSortedCategories(categories)
@@ -204,6 +218,7 @@
     await new Promise<void>((resolve) => setTimeout(resolve, 280))
     // 此时容器已透明，安全切换 DOM 内容
     bookmarksVisible = !bookmarksVisible
+    cachedBookmarksVisible = bookmarksVisible
     // 等待 DOM 更新后再淡入
     await tick()
     viewFading = false
