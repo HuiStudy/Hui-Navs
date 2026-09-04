@@ -122,6 +122,8 @@ export interface NavigationSetting {
 // 卡片风格类型
 export type CardStyle = 'info' | 'icon' // info=详情风格, icon=极简风格
 
+export type DefaultHomeView = 'time' | 'bookmarks'
+
 // 全部设置的强类型视图（后端按 key 存 JSON，这里是聚合形态）
 export interface Settings {
   site_title: string
@@ -153,6 +155,7 @@ export interface Settings {
   footer_html: string
   most_visited_count: number
   site_title_show: boolean
+  default_home_view: DefaultHomeView
 }
 
 // ========== API 统一响应包络 ==========
@@ -276,6 +279,7 @@ export interface PublicSettings {
   custom_js: string
   most_visited_count: number
   site_title_show: boolean
+  default_home_view: DefaultHomeView
 }
 
 // GET /api/config （极简公开配置，登录页用）
