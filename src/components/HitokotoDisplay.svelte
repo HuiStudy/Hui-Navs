@@ -414,7 +414,7 @@
    /* 提高优先级，确保生效 */
   :global(body.bookmarks-hidden) .hitokoto-page,
   :global(.bookmarks-hidden) .hitokoto-page {
-    min-height: calc(100dvh - clamp(10rem, 25vh, 15rem));
+    min-height: calc(95dvh - clamp(10rem, 25vh, 15rem));
     justify-content: space-between;
     padding-top: clamp(6rem, 12vh, 12vh);
     padding-bottom: clamp(6rem, 10vh, 10rem);
