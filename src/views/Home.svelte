@@ -79,17 +79,13 @@
   let bookmarksVisible = true
   let defaultViewApplied = false
 
-  $: defaultView = settings?.default_home_view ?? 'time'
-  $: applyDefaultView(defaultView, defaultViewApplied)
-
-  function applyDefaultView(view: 'time' | 'bookmarks', applied: boolean): void {
-    // 后台 default_home_view 首次加载后，按其值初始化 bookmarksVisible（仅一次）
-    // 之后用户的手动切换不受响应式变化影响；刷新页面会重新按后台设置初始化
-    if (applied) return
-    // settings 还未加载完成时不应用
-    if (!settings) return
+  // 后台 default_home_view 首次加载后，按其值初始化 bookmarksVisible（仅一次）
+  // 之后用户的手动切换不受响应式变化影响；刷新页面会重新按后台设置初始化
+  // 注意：响应式必须直接读取 settings，否则当 default_home_view === 'time'（默认值）
+  // 时 defaultView 不会发生变化，applyDefaultView 永远不会被触发。
+  $: if (settings && !defaultViewApplied) {
     defaultViewApplied = true
-    bookmarksVisible = view === 'bookmarks'
+    bookmarksVisible = settings.default_home_view === 'bookmarks'
   }
 
   $: sortedCategories = homeData.getSortedCategories(categories)
