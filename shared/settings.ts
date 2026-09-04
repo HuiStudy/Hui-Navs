@@ -30,6 +30,7 @@ export const SETTINGS_KEYS = [
   'footer_html',
   'most_visited_count',
   'site_title_show',
+  'default_home_view',
 ] as const satisfies readonly (keyof Settings)[]
 
 export const PUBLIC_SETTINGS_KEYS = [
@@ -60,6 +61,7 @@ export const PUBLIC_SETTINGS_KEYS = [
   'custom_js',
   'most_visited_count',
   'site_title_show',
+  'default_home_view',
 ] as const satisfies readonly (keyof PublicSettings)[]
 
 export const PUBLIC_DATA_SETTINGS_KEYS = [
@@ -96,5 +98,6 @@ export function toPublicSettings(settings: Settings): PublicSettings {
     custom_js: settings.custom_js,
     most_visited_count: settings.most_visited_count,
     site_title_show: settings.site_title_show,
+    default_home_view: settings.default_home_view,
   }
 }
