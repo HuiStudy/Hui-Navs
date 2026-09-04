@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte'
+  import { fade } from 'svelte/transition'
   import Sidebar from '../components/Sidebar.svelte'
   import CategorySection from '../components/CategorySection.svelte'
   import CategoryIcon from '../components/CategoryIcon.svelte'
@@ -8,6 +9,7 @@
   import HomeEmptyPanel from '../components/HomeEmptyPanel.svelte'
   import HomeFloatingActions from '../components/HomeFloatingActions.svelte'
   import HomeHeroSearch from '../components/HomeHeroSearch.svelte'
+  import HitokotoDisplay from '../components/HitokotoDisplay.svelte'
   import type { BookmarkReorganizeReq, NavigationSetting, PublicBookmark, PublicCategory, PublicSettings, ThemeMode } from '../../shared/types'
   import {
     bookmarkMatchesSearch,
@@ -74,6 +76,8 @@
   let homeSortSaving = false
   let homeSortDraft: PublicBookmark[] = []
   let homeSortError = ''
+  let bookmarksVisible = true
+  const BOOKMARKS_VISIBLE_KEY = 'cfnavs_bookmarks_visible'
 
   $: sortedCategories = homeData.getSortedCategories(categories)
   $: categoryForest = homeData.getCategoryForest(categories)
@@ -178,6 +182,25 @@
     nextDraft = replaceCategoryOrder(nextDraft, fromCategoryId, transfer.sourceIds)
     nextDraft = replaceCategoryOrder(nextDraft, toCategoryId, transfer.targetIds)
     homeSortDraft = nextDraft
+  }
+
+  function handleToggleBookmarks(): void {
+    bookmarksVisible = !bookmarksVisible
+    try {
+      window.localStorage.setItem(BOOKMARKS_VISIBLE_KEY, bookmarksVisible ? '1' : '0')
+    } catch {
+      // ignore
+    }
+  }
+
+  function loadBookmarksVisible(): void {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = window.localStorage.getItem(BOOKMARKS_VISIBLE_KEY)
+      if (saved === '0') bookmarksVisible = false
+    } catch {
+      // ignore
+    }
   }
 
   async function saveHomeSort(): Promise<void> {
@@ -332,6 +355,7 @@
   }
 
   onMount(() => {
+    loadBookmarksVisible()
     window.addEventListener('scroll', scheduleActiveRootUpdate, { passive: true })
     scheduleActiveRootUpdate()
   })
@@ -357,6 +381,7 @@
   class="home-shell"
   class:top-navigation-layout={isTopNavigation}
   class:persistent-left-navigation={navigation.position === 'left' && navigation.always_expanded && persistentLeftExpanded}
+  class:bookmarks-hidden={!bookmarksVisible}
   style={homeShellStyle}
 >
   <HomeFloatingActions
@@ -369,6 +394,8 @@
     {onLogout}
     {onOpenLogin}
     topNavigation={isTopNavigation}
+    {bookmarksVisible}
+    onToggleBookmarks={handleToggleBookmarks}
   />
 
   <HomeHeroSearch
@@ -380,16 +407,22 @@
     bind:query={searchQuery}
   />
 
-  <Sidebar
-    items={navigationSections}
-    {activeId}
-    {navigation}
-    onNavigate={handleNavigate}
-    onPersistentExpansionChange={(expanded) => (persistentLeftExpanded = expanded)}
-    onTopNavHeightChange={(height) => (topNavHeight = height)}
-  />
+  {#if !hasSearchQuery}
+    <HitokotoDisplay />
+  {/if}
 
-  <div class="content-layout" bind:this={contentAnchor}>
+  {#if bookmarksVisible}
+    <div transition:fade={{ duration: 280 }}>
+      <Sidebar
+        items={navigationSections}
+        {activeId}
+        {navigation}
+        onNavigate={handleNavigate}
+        onPersistentExpansionChange={(expanded) => (persistentLeftExpanded = expanded)}
+        onTopNavHeightChange={(height) => (topNavHeight = height)}
+      />
+
+      <div class="content-layout" bind:this={contentAnchor}>
     <main class="content-panel">
       {#if hasSearchQuery}
         <HomeContentSummary
@@ -555,21 +588,23 @@
         <HomeEmptyPanel />
       {/if}
     </main>
-  </div>
-
-  {#if homeSortMode || homeSortError}
-    <div class="home-sort-bar" role="toolbar" aria-label="跨分类排序操作">
-      {#if homeSortError}
-        <span class="home-sort-error" role="alert">保存排序失败：{homeSortError}</span>
-        <button type="button" class="home-sort-cancel" on:click={cancelHomeSort}>关闭</button>
-      {:else}
-        <span>正在排序：可将书签拖到其他分类，完成后保存。</span>
-        <button type="button" class="home-sort-cancel" on:click={cancelHomeSort} disabled={homeSortSaving}>取消</button>
-        <button type="button" class="home-sort-save" on:click={saveHomeSort} disabled={homeSortSaving}>
-          {homeSortSaving ? '保存中…' : '保存排序'}
-        </button>
-      {/if}
+      </div>
     </div>
+
+    {#if homeSortMode || homeSortError}
+      <div class="home-sort-bar" role="toolbar" aria-label="跨分类排序操作">
+        {#if homeSortError}
+          <span class="home-sort-error" role="alert">保存排序失败：{homeSortError}</span>
+          <button type="button" class="home-sort-cancel" on:click={cancelHomeSort}>关闭</button>
+        {:else}
+          <span>正在排序：可将书签拖到其他分类，完成后保存。</span>
+          <button type="button" class="home-sort-cancel" on:click={cancelHomeSort} disabled={homeSortSaving}>取消</button>
+          <button type="button" class="home-sort-save" on:click={saveHomeSort} disabled={homeSortSaving}>
+            {homeSortSaving ? '保存中…' : '保存排序'}
+          </button>
+        {/if}
+      </div>
+    {/if}
   {/if}
 
   {#if settings?.footer_html}
