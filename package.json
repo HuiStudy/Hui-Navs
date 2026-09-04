@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "hono": "^4.13.0",
+    "lunar-javascript": "^1.7.7",
     "sortablejs": "^1.15.3"
   }
 }
