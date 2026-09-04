@@ -307,7 +307,7 @@
 
   .hitokoto-actions {
     position: absolute;
-    right: 0;
+    right: -clamp(0.25rem, 0.6vw, 0.5rem);
     top: 50%;
     transform: translateY(-50%);
     display: flex;
