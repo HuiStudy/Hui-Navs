@@ -122,12 +122,11 @@
       </button>
     {:else}
       <div class="words-line">
-        <span class="left-spacer"></span>
-        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
+        <svg class="q-mark q-left" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
         </svg>
         <p class="quote-text">{quote}</p>
-        <svg class="q-mark" viewBox="0 0 20 20" aria-hidden="true">
+        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
         </svg>
         <button
@@ -257,7 +256,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.2em;
     width: 100%;
     font-size: clamp(0.875rem, 1.3vw, 1rem);
     line-height: 1.4;
@@ -267,24 +266,14 @@
     margin-top: clamp(-0.5rem, -2vw, -1.5rem);
   }
 
-  .left-spacer {
-    display: block;
-    width: clamp(1.5rem, 3.5vw, 3.375rem);
-    margin-right: clamp(0.375rem, 1.2vw, 1rem);
-    flex-shrink: 0;
-  }
-
   .q-mark {
     width: 1.25em;
     height: 1.25em;
     flex-shrink: 0;
-    margin-right: 0.75em;
     opacity: 0.6;
   }
 
   .q-mark.q-right {
-    margin-right: 0;
-    margin-left: 0.75em;
     transform: rotate(180deg);
   }
 
@@ -299,8 +288,20 @@
 
   .quote-text::-webkit-scrollbar { display: none; }
 
+  .copy-btn,
+  .refresh-btn {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, background 0.2s;
+  }
+
+  .words-line:hover .copy-btn,
+  .words-line:hover .refresh-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .copy-btn {
-    margin-left: clamp(0.375rem, 1.2vw, 1rem);
     width: clamp(2.5rem, 4vw, 3.375rem);
     flex-shrink: 0;
     display: flex;
@@ -314,7 +315,6 @@
     backdrop-filter: blur(4px);
     color: rgba(245, 245, 250, 0.9);
     cursor: pointer;
-    transition: background 0.2s;
   }
 
   .copy-btn:hover { background: rgba(255, 255, 255, 0.4); }
@@ -335,7 +335,6 @@
     border: none;
     color: rgba(245, 245, 250, 0.9);
     cursor: pointer;
-    transition: background 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
