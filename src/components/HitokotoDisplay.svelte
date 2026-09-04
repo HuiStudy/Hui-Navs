@@ -122,45 +122,47 @@
       </button>
     {:else}
       <div class="words-line">
-        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
-        </svg>
-        <p class="quote-text">{quote}</p>
         <svg class="q-mark q-left" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
         </svg>
-        <button
-          type="button"
-          class="copy-btn"
-          on:click={handleCopy}
-          title="复制"
-          aria-label="复制一言"
-        >
-          {#if copied}
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M13 5 7 11 4 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <p class="quote-text">{quote}</p>
+        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
+        </svg>
+        <div class="hitokoto-actions">
+          <button
+            type="button"
+            class="copy-btn"
+            on:click={handleCopy}
+            title="复制"
+            aria-label="复制一言"
+          >
+            {#if copied}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13 5 7 11 4 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            {:else}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M3 10V2a1.5 1.5 0 0 1 1.5-1.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            {/if}
+          </button>
+          <button
+            type="button"
+            class="refresh-btn"
+            on:click={handleRefresh}
+            title="换一句"
+            aria-label="换一句"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 3v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 21v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          {:else}
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <rect x="5" y="5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M3 10V2a1.5 1.5 0 0 1 1.5-1.5h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          {/if}
-        </button>
-        <button
-          type="button"
-          class="refresh-btn"
-          on:click={handleRefresh}
-          title="换一句"
-          aria-label="换一句"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 12a9 9 0 0 1 15-6.7L21 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M21 3v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M21 12a9 9 0 0 1-15 6.7L3 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 21v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
+          </button>
+        </div>
       </div>
 
       <div class="hitokoto-meta">
@@ -253,10 +255,13 @@
   }
 
   .words-line {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 0.2em;
+    width: 100%;
     font-size: clamp(0.875rem, 1.3vw, 1rem);
     line-height: 1.4;
     letter-spacing: 0.06em;
@@ -277,7 +282,7 @@
   }
 
   .quote-text {
-    flex: 1;
+    flex: 0 1 auto;
     margin: 0;
     text-align: center;
     max-height: clamp(7rem, 14vh, 10rem);
@@ -287,64 +292,58 @@
 
   .quote-text::-webkit-scrollbar { display: none; }
 
-  .copy-btn,
-  .refresh-btn {
+  .hitokoto-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.375rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease, background 0.2s;
+    transition: opacity 0.25s ease;
   }
 
-  .words-line:hover .copy-btn,
-  .words-line:hover .refresh-btn {
+  .words-line:hover .hitokoto-actions {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .copy-btn {
-    width: clamp(2.5rem, 4vw, 3.375rem);
-    flex-shrink: 0;
+  .copy-btn,
+  .refresh-btn {
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 0.125rem;
-    border: none;
+  }
+
+  .copy-btn {
+    width: clamp(2.2rem, 3.6vw, 2.75rem);
+    height: clamp(1.8rem, 2.8vw, 2.25rem);
     border-radius: 0.5rem;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(4px);
     color: rgba(245, 245, 250, 0.9);
-    cursor: pointer;
   }
 
   .copy-btn:hover { background: rgba(255, 255, 255, 0.4); }
-
-  .copy-btn svg {
-    width: 1.5em;
-    height: 1.5em;
-    border-radius: 0.375rem;
-    padding: 0.25rem;
-  }
+  .copy-btn svg { width: 1rem; height: 1rem; }
 
   .refresh-btn {
-    flex-shrink: 0;
+    width: clamp(1.8rem, 2.8vw, 2.25rem);
+    height: clamp(1.8rem, 2.8vw, 2.25rem);
     border-radius: 0.5rem;
-    padding: 0.375rem;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(4px);
-    border: none;
     color: rgba(245, 245, 250, 0.9);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .refresh-btn:hover { background: rgba(255, 255, 255, 0.4); }
-
-  .refresh-btn svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
+  .refresh-btn svg { width: 1.125rem; height: 1.125rem; }
 
   .hitokoto-meta {
     display: flex;
