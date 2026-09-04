@@ -122,11 +122,11 @@
       </button>
     {:else}
       <div class="words-line">
-        <svg class="q-mark q-left" viewBox="0 0 20 20" aria-hidden="true">
+        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
         </svg>
         <p class="quote-text">{quote}</p>
-        <svg class="q-mark q-right" viewBox="0 0 20 20" aria-hidden="true">
+        <svg class="q-mark q-left" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M12 3 L12 12 L14 12 L14 18 L16 18 L18 11 L18 3 L12 3 Z M2 3 L2 12 L4 12 L4 18 L6 18 L8 11 L8 3 L2 3 Z" fill="currentColor"/>
         </svg>
         <button
@@ -257,7 +257,6 @@
     flex-direction: row;
     align-items: center;
     gap: 0.2em;
-    width: 100%;
     font-size: clamp(0.875rem, 1.3vw, 1rem);
     line-height: 1.4;
     letter-spacing: 0.06em;
