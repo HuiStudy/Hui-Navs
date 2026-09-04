@@ -14,6 +14,8 @@
   export let onLogout: (() => AsyncVoid) | undefined = undefined
   export let onOpenLogin: (() => AsyncVoid) | undefined = undefined
   export let topNavigation = false
+  export let bookmarksVisible = true
+  export let onToggleBookmarks: (() => AsyncVoid) | undefined = undefined
 
   let showBackToTop = false
 
@@ -28,6 +30,10 @@
 
   function handleToggleTheme() {
     void onToggleTheme?.()
+  }
+
+  function handleToggleBookmarks() {
+    void onToggleBookmarks?.()
   }
 
   function handleSwitchToAdmin() {
@@ -71,6 +77,27 @@
     aria-label={themeToggleLabel}
   >
     {themeToggleIcon}
+  </button>
+  <button
+    type="button"
+    class="icon-button"
+    data-testid="home-bookmarks-toggle"
+    on:click={handleToggleBookmarks}
+    title={bookmarksVisible ? '隐藏书签' : '显示书签'}
+    aria-label={bookmarksVisible ? '隐藏书签' : '显示书签'}
+  >
+    {#if bookmarksVisible}
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="toggle-icon">
+        <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    {:else}
+      <svg viewBox="0 0 24 24" aria-hidden="true" class="toggle-icon">
+        <path d="M4 6h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M4 12h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M4 18h10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M19 15v6M16 18h6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    {/if}
   </button>
   {#if isAuthenticated}
     <button
@@ -178,6 +205,12 @@
     background: rgba(255, 255, 255, 0.95);
     border-color: rgba(37, 99, 235, 0.45);
     transform: translateY(-1px);
+  }
+
+  .toggle-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
   }
 
   .theme-toggle-button {
