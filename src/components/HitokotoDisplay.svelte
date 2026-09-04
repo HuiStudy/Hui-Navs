@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { Solar } from 'lunar-javascript'
 
   interface HitokotoResponse {
     id: number
@@ -19,6 +20,7 @@
   let second = '00'
   let dateLine1 = ''
   let weekday = ''
+  let lunar = ''
 
   let quote = ''
   let from = ''
@@ -40,6 +42,12 @@
     dateLine1 = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
     const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
     weekday = weekdays[now.getDay()]
+    try {
+      const l = Solar.fromDate(now).getLunar()
+      lunar = `${l.getMonthInChinese()}月${l.getDayInChinese()}`
+    } catch {
+      lunar = ''
+    }
   }
 
   async function fetchHitokoto() {
@@ -109,6 +117,10 @@
     <div class="date-line">
       <span>{dateLine1}</span>
       <span class="date-sep">&nbsp;&nbsp;</span>
+      {#if lunar}
+        <span>{lunar}</span>
+        <span class="date-sep">&nbsp;&nbsp;</span>
+      {/if}
       <span>{weekday}</span>
     </div>
   </div>
@@ -256,12 +268,13 @@
 
   .words-line {
     position: relative;
-    display: flex;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 0.2em;
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
     font-size: clamp(0.875rem, 1.3vw, 1rem);
     line-height: 1.4;
     letter-spacing: 0.06em;
