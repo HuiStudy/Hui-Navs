@@ -79,4 +79,5 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
   ('search_engine_selector_show', 'true'),
   ('content_layout', '{"max_width":1200,"max_width_unit":"px","margin_x":0,"margin_top":0,"margin_bottom":0}'),
   ('navigation', '{"position":"left","always_expanded":false,"top_layout":"scroll"}'),
-  ('footer_html', '""');
+  ('footer_html', '""'),
+  ('default_home_view', '"time"');
