@@ -83,8 +83,8 @@
     class="icon-button"
     data-testid="home-bookmarks-toggle"
     on:click={handleToggleBookmarks}
-    title={bookmarksVisible ? '隐藏书签' : '显示书签'}
-    aria-label={bookmarksVisible ? '隐藏书签' : '显示书签'}
+    title={bookmarksVisible ? '显示时间' : '显示书签'}
+    aria-label={bookmarksVisible ? '显示时间' : '显示书签'}
   >
     {#if bookmarksVisible}
        <!-- 书签可见 → 显示日历图标（点击后隐藏书签） -->
