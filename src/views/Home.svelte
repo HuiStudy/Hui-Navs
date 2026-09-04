@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from 'svelte'
-  import { fade } from 'svelte/transition'
   import Sidebar from '../components/Sidebar.svelte'
   import CategorySection from '../components/CategorySection.svelte'
   import CategoryIcon from '../components/CategoryIcon.svelte'
@@ -77,6 +76,9 @@
   let homeSortDraft: PublicBookmark[] = []
   let homeSortError = ''
   let bookmarksVisible = true
+  // 切换动画期间为 true，此时内容容器透明度为 0（淡出阶段）。
+  // 保证旧视图完全隐藏后才切换 DOM，避免两个视图同时存在导致出现滚动条。
+  let viewFading = false
   let defaultViewApplied = false
 
   // 后台 default_home_view 首次加载后，按其值初始化 bookmarksVisible（仅一次）
@@ -193,8 +195,18 @@
     homeSortDraft = nextDraft
   }
 
-  function handleToggleBookmarks(): void {
+  // 顺序切换：先淡出当前视图（280ms），DOM 切换后再淡入新视图。
+  // 整个过程任意时刻只有一个视图存在于 DOM，不会出现滚动条闪现。
+  async function handleToggleBookmarks(): Promise<void> {
+    if (viewFading) return
+    viewFading = true
+    // 等待淡出动画完成
+    await new Promise<void>((resolve) => setTimeout(resolve, 280))
+    // 此时容器已透明，安全切换 DOM 内容
     bookmarksVisible = !bookmarksVisible
+    // 等待 DOM 更新后再淡入
+    await tick()
+    viewFading = false
   }
 
   async function saveHomeSort(): Promise<void> {
@@ -400,12 +412,13 @@
     bind:query={searchQuery}
   />
 
+  <div class="view-container" class:fading={viewFading}>
   {#if !bookmarksVisible}
     {#if !hasSearchQuery}
       <HitokotoDisplay />
     {/if}
   {:else}
-    <div transition:fade={{ duration: 280 }}>
+    <div>
       <Sidebar
         items={navigationSections}
         {activeId}
@@ -599,6 +612,7 @@
       </div>
     {/if}
   {/if}
+  </div>
 
   {#if settings?.footer_html}
     <footer class="home-footer">
@@ -622,6 +636,16 @@
     --toc-expanded-width: 232px;
     color: var(--home-text-color);
     isolation: isolate;
+  }
+
+  /* 书签/时间视图切换容器：通过 opacity 实现顺序切换，
+     先淡出旧视图（.fading 时 opacity:0），DOM 切换后再淡入新视图，
+     确保任意时刻只有一个视图存在于 DOM，避免滚动条闪现。 */
+  .view-container {
+    transition: opacity 280ms ease;
+  }
+  .view-container.fading {
+    opacity: 0;
   }
 
   .home-shell.top-navigation-layout {
